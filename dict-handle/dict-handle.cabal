@@ -1,0 +1,39 @@
+cabal-version:      3.0
+name:               dict-handle
+version:            0.1.0.2
+license:            BSD-3-Clause
+license-file:       LICENSE
+maintainer:         adetokunbo@emio.la
+author:             Tim Emiola
+tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.4 || ==9.4.1
+homepage:           https://github.com/adetokunbo/dict-handle#readme
+bug-reports:        https://github.com/adetokunbo/dict-handle/issues
+synopsis:           Provides an abstract __Handle__ for accessing redis
+description:
+  Provides an abstract handle for accessing Redis that only uses it as a
+  as a store of Dicts.  Includes other modules that provide typeclasses and combinators to
+  to allow the succint definition typed interfaces to data in Redis.
+
+category:           Web, Redis
+build-type:         Simple
+extra-source-files:
+  ChangeLog.md
+  README.md
+
+source-repository head
+  type:     git
+  location: https://github.com/adetokunbo/dict-handle.git
+
+library
+  exposed-modules:
+    Dict.Handle
+    Dict.Handle.Internal
+
+  hs-source-dirs:   src
+  default-language: Haskell2010
+  ghc-options:      -Wall -Wincomplete-uni-patterns -fwarn-tabs
+  build-depends:
+    , base        >=4.11     && <5.0
+    , bytestring  >=0.10.8.2 && <0.11 || >=0.11.3.1 && <0.12
+    , containers  >=0.6.5    && <0.7
+    , text        >=1.2.4    && <1.3  || >=2.0
