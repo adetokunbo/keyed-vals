@@ -1,5 +1,5 @@
 cabal-version:      3.0
-name:               keyed-vals
+name:               keyed-vals-mem
 version:            0.1.0.0
 license:            BSD-3-Clause
 license-file:       LICENSE
@@ -8,11 +8,15 @@ author:             Tim Emiola
 tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.4 || ==9.4.1
 homepage:           https://github.com/adetokunbo/keyed-vals#readme
 bug-reports:        https://github.com/adetokunbo/keyed-vals/issues
-synopsis:           Provides an abstract __Handle__ for accessing redis
+synopsis:
+  Implements __Handle__ from key-vals using data structures in memory
+
 description:
-  Provides an abstract handle for accessing Redis that only uses it as a
-  as a store of Dicts.  Includes other modules that provide typeclasses and combinators to
-  to allow the succint definition typed interfaces to data in Redis.
+  Though [keyed-vals](https://hackage.haskell.org/package/keyed-vals) is
+  intended as a narrow client of [Redis](https://redis.io) focussed on using it
+  to store collections of key-vals, its abstract definition of __Handle__
+  permits this package to provide a useful in-memory implementation. It is
+  intended be used as a drop-in replacement for use in testing and prototyping.
 
 category:           Web, Redis
 build-type:         Simple
@@ -25,19 +29,15 @@ source-repository head
   location: https://github.com/adetokunbo/keyed-vals.git
 
 library
-  exposed-modules:
-    KeyedVals.Handle
-    KeyedVals.Handle.Aeson
-    KeyedVals.Handle.Internal
-
+  exposed-modules:  KeyedVals.Handle.Mem
   hs-source-dirs:   src
   default-language: Haskell2010
   ghc-options:      -Wall -Wincomplete-uni-patterns -fwarn-tabs
   build-depends:
-    , aeson          >=1.5.1    && <2.2
     , base           >=4.11     && <5.0
     , bytestring     >=0.10.8.2 && <0.11 || >=0.11.3.1 && <0.12
     , containers     >=0.6.5    && <0.7
-    , http-api-data  >=0.5      && <0.6
-    , redis-glob     >=0.1      && <0.2
+    , keyed-vals     >=0.1      && <0.2
     , text           >=1.2.4    && <1.3  || >=2.0
+    , unliftio       >=0.2.22   && <0.3
+    , unliftio-core  >=0.2.0    && <0.3

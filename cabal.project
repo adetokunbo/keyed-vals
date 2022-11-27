@@ -1,1 +1,3 @@
-packages: keyed-vals
+packages:
+  ./keyed-vals
+  ./keyed-vals-mem
