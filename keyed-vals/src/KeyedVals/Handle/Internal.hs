@@ -14,6 +14,7 @@ module KeyedVals.Handle.Internal (
   HandleErr (..),
   Glob,
   mkGlob,
+  isIn,
   Selection (..),
 
   -- * the abstract @Handle@
@@ -32,7 +33,7 @@ import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map.Strict (Map)
 import Data.Text (Text)
 import Numeric.Natural (Natural)
-import Redis.Glob (validate)
+import Redis.Glob (matches, validate)
 
 
 -- | A handle for accessing the 'ValsByKey' store.
@@ -82,6 +83,12 @@ returns 'Nothing' when the pattern is invalid
 -}
 mkGlob :: ByteString -> Maybe Glob
 mkGlob = fmap (Glob . LB.toStrict) . validate . LB.fromStrict
+
+
+-- | tests if a 'ByteString' matches a Selection
+isIn :: ByteString -> Selection -> Bool
+isIn b (Match (Glob x)) = LB.fromStrict b `matches` LB.fromStrict x
+isIn b (AllOf (key :| ks)) = key == b || b `elem` ks
 
 
 instance Exception HandleErr
