@@ -1,6 +1,6 @@
-# Revision history for redis-glob
+# Revision history for keyed-vals
 
-`dict-handle` uses [PVP Versioning][1].
+`keyed-vals` uses [PVP Versioning][1].
 
 ## 0.1.0.0 -- 2022-11-25
 
