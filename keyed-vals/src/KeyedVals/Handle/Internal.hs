@@ -14,6 +14,7 @@ module KeyedVals.Handle.Internal (
   HandleErr (..),
   Glob,
   mkGlob,
+  globPattern,
   isIn,
   Selection (..),
 
@@ -73,13 +74,13 @@ data Selection
 
 
 -- | Represents a redis glob use to select keys
-newtype Glob = Glob ByteString
+newtype Glob = Glob {globPattern :: ByteString}
   deriving (Eq, Show)
 
 
 {- | constructor for a 'Glob'
 
-returns 'Nothing' when the pattern is invalid
+returns 'Nothing' if the pattern is invalid
 -}
 mkGlob :: ByteString -> Maybe Glob
 mkGlob = fmap (Glob . LB.toStrict) . validate . LB.fromStrict
@@ -87,7 +88,7 @@ mkGlob = fmap (Glob . LB.toStrict) . validate . LB.fromStrict
 
 -- | tests if a 'ByteString' matches a Selection
 isIn :: ByteString -> Selection -> Bool
-isIn b (Match (Glob x)) = LB.fromStrict b `matches` LB.fromStrict x
+isIn b (Match g) = LB.fromStrict b `matches` LB.fromStrict (globPattern g)
 isIn b (AllOf (key :| ks)) = key == b || b `elem` ks
 
 

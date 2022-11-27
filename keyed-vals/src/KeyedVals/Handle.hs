@@ -11,10 +11,6 @@ module KeyedVals.Handle (
   -- * 'Handle' and related types and functions
   Handle (),
   HandleErr (..),
-  Glob,
-  Selection (..),
-  mkGlob,
-  isIn,
   countKVs,
   loadVal,
   saveVal,
@@ -31,6 +27,13 @@ module KeyedVals.Handle (
   deleteSelected,
   deleteSelectedFrom,
   close,
+
+  -- * 'Selection' and 'Glob'
+  Selection (..),
+  Glob,
+  mkGlob,
+  globPattern,
+  isIn,
 
   -- * aliases used by the 'Handle' functions
   Key,
