@@ -2,7 +2,7 @@
 
 `keyed-vals` uses [PVP Versioning][1].
 
-## 0.1.0.0 -- 2022-11-25
+## 0.1.0.0 -- 2022-11-28
 
 * Initial version.
 
