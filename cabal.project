@@ -1,3 +1,4 @@
 packages:
   ./keyed-vals
   ./keyed-vals-mem
+  ./keyed-vals-redis
