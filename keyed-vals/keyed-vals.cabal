@@ -8,13 +8,15 @@ author:             Tim Emiola
 tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.4 || ==9.4.1
 homepage:           https://github.com/adetokunbo/keyed-vals#readme
 bug-reports:        https://github.com/adetokunbo/keyed-vals/issues
-synopsis:           Provides an abstract __Handle__ for accessing redis
+synopsis:           An abstract Handle for accessing collections in stores like Redis
 description:
-  Provides an abstract handle for accessing Redis that only uses it as a
-  as a store of Dicts.  Includes other modules that provide typeclasses and combinators to
-  to allow the succint definition typed interfaces to data in Redis.
+  Provides an abstract [Handle](https://jaspervdj.be/posts/2018-03-08-handle-pattern.html) for
+  accessing stored key-value collections, and useful combinators that use Handle.
 
-category:           Web, Redis
+  E.g, one implementation of Handle accesses collections in
+  in [Redis](https://redis.io/); other backends are possible.
+
+category:           Data, Redis
 build-type:         Simple
 extra-source-files:
   ChangeLog.md
