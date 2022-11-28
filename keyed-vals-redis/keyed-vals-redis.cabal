@@ -9,18 +9,17 @@ tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.4 || ==9.4.1
 homepage:           https://github.com/adetokunbo/keyed-vals#readme
 bug-reports:        https://github.com/adetokunbo/keyed-vals/issues
 synopsis:
-  Access Redis using keyed-vals __Handle__
+  Access Redis using a keyed-vals Handle
 
 description:
-  [keyed-vals](https://hackage.haskell.org/package/keyed-vals) aims
-  to provide a 'narrow' client of [Redis](https://redis.io).
+  [keyed-vals](https://hackage.haskell.org/package/keyed-vals) specifies
+  a focussed client of storage services like [Redis](https://redis.io).
 
-  I.e, __Redis__ supports many features; the abstract __Handle__ declared in
-  `keyed-vals` just supports operations that access collections of values stored
-  by keys (aka: 'dict', 'map', hash', 'object' and even 'context')
+  I.e, while Redis supports many features; the abstract Handle in keyed-vals
+  just supports operations that access collections of key-values
 
-  This package provides a concrete implementation of the abstract __Handle__
-  that actually uses Redis.
+  This package provides a concrete implementation of Handle that uses Redis as
+  the underlying storage service.
 
 category:           Data, Redis
 build-type:         Simple

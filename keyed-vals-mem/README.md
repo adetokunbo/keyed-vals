@@ -1,6 +1,6 @@
 # keyed-vals-mem
 
-[![GitHub CI](https://github.com/adetokunbo/keyed-vals-mem/actions/workflows/ci.yml/badge.svg)](https://github.com/adetokunbo/keyed-vals-mem/actions)
+[![GitHub CI](https://github.com/adetokunbo/keyed-vals/actions/workflows/ci.yml/badge.svg)](https://github.com/adetokunbo/keyed-vals/actions)
 [![Stackage Nightly](http://stackage.org/package/keyed-vals-mem/badge/nightly)](http://stackage.org/nightly/package/keyed-vals-mem)
 [![Hackage][hackage-badge]][hackage]
 [![Hackage Dependencies][hackage-deps-badge]][hackage-deps]
@@ -9,7 +9,7 @@
 `keyed-vals` aims to provide a narrow client for storing key-value collections
 in storage services like [Redis] via an abstract [Handle] interface.
 
-This package, `keyed-vals-mem` provides an in-memory implementation of the [Handle]
+This package, `keyed-vals-mem`, provides an in-memory implementation of the [Handle]
 suitable for use in testing and prototyping.
 
 [hackage-deps-badge]: <https://img.shields.io/hackage-deps/v/keyed-vals-mem.svg>
@@ -17,3 +17,4 @@ suitable for use in testing and prototyping.
 [hackage-badge]:      <https://img.shields.io/hackage/v/keyed-vals-mem.svg>
 [hackage]:            <https://hackage.haskell.org/package/keyed-vals-mem>
 [Handle]:             <https://hackage.haskell.org/package/keyed-vals>
+[Redis]:              <https://redis.io>
