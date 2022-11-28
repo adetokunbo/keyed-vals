@@ -46,7 +46,8 @@ spec :: Spec
 spec =
   tdescribe "Using a redis Handle" $
     beforeAll setupHandles $
-      afterAll closeHandles $ mapSubject fst checkHandle
+      afterAll closeHandles $
+        mapSubject fst checkHandle
 
 
 setupHandles :: IO (Fixture (HList '[ProcHandle TmpRedis]))
