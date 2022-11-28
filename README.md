@@ -1,9 +1,6 @@
 # keyed-vals
 
 [![GitHub CI](https://github.com/adetokunbo/keyed-vals/actions/workflows/ci.yml/badge.svg)](https://github.com/adetokunbo/keyed-vals/actions)
-[![Stackage Nightly](http://stackage.org/package/keyed-vals/badge/nightly)](http://stackage.org/nightly/package/keyed-vals)
-[![Hackage][hackage-badge]][hackage]
-[![Hackage Dependencies][hackage-deps-badge]][hackage-deps]
 [![BSD3](https://img.shields.io/badge/license-BSD3-green.svg?dummy)](https://github.com/adetokunbo/keyed-vals/blob/master/LICENSE)
 
 `keyed-vals` aims to provide a narrow client for storing key-value collections
