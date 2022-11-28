@@ -9,16 +9,17 @@ tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.4 || ==9.4.1
 homepage:           https://github.com/adetokunbo/keyed-vals#readme
 bug-reports:        https://github.com/adetokunbo/keyed-vals/issues
 synopsis:
-  Implements __Handle__ from key-vals using data structures in memory
+  Implements a keyed-vals Handle using in-process memory
 
 description:
-  Though [keyed-vals](https://hackage.haskell.org/package/keyed-vals) is
-  intended as a narrow client of [Redis](https://redis.io) focussed on using it
-  to store collections of key-vals, its abstract definition of __Handle__
-  permits this package to provide a useful in-memory implementation. It is
-  intended be used as a drop-in replacement for use in testing and prototyping.
+  While the goal of [keyed-vals](https://hackage.haskell.org/package/keyed-vals) is
+  to provide access to storage services like [Redis](https://redis.io), the
+  abstract definition of __Handle__ also enables this in-process implementation.
 
-category:           Web, Redis
+  It is intended be used as a drop-in replacement for use in testing and rapid
+  prototyping.
+
+category:           Data, Redis
 build-type:         Simple
 extra-source-files:
   ChangeLog.md
