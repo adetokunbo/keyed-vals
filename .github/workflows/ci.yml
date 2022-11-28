@@ -42,4 +42,4 @@ jobs:
       - run: cabal build all $CONFIG
       - run: cabal test all $CONFIG
       - run: cabal haddock all $CONFIG
-      - run: cabal sdist
+      - run: cabal sdist all
