@@ -9,13 +9,13 @@ tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.4 || ==9.4.1
 homepage:           https://github.com/adetokunbo/keyed-vals#readme
 bug-reports:        https://github.com/adetokunbo/keyed-vals/issues
 synopsis:
-  A test package the checks a keyed-vals Handle implementation using Hspec
+  Validate a keyed-vals Handle
 
 description:
-  Defines a Hspec fixture for testing implementations of the abstract
-  __Handle__ defined by [keyed-vals](https://hackage.haskell.org/package/keyed-vals)
+  Provides a Hspec fixture for testing implementations of the abstract
+  Handle defined in the keyed-vals package
 
-category:           Redis, Hspec
+category:           Data, Hspec
 build-type:         Simple
 extra-source-files:
   ChangeLog.md
