@@ -1,4 +1,5 @@
 packages:
   ./keyed-vals
+  ./keyed-vals-hspec-tests
   ./keyed-vals-mem
   ./keyed-vals-redis
