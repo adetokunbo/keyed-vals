@@ -22,6 +22,6 @@ Packages include:
 [hackage]:                  <https://hackage.haskell.org/package/keyed-vals>
 [Handle]:                   <https://jaspervdj.be/posts/2018-03-08-handle-pattern.html>
 [Redis]:                    <https://redis.io>
-[main interface]:           <https://hackage.haskell.org/package/keyed-vals>
+[main interface]:           <https://hackage.haskell.org/package/keyed-vals-0.1.0.0/docs/KeyedVals-Handle.html>
 [redis implementation]:     <https://hackage.haskell.org/package/keyed-vals-redis>
 [in-memory implementation]: <https://hackage.haskell.org/package/keyed-vals-mem>
