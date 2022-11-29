@@ -17,5 +17,5 @@ that uses [Redis] as the storage service.
 [hackage-deps]:       <http://packdeps.haskellers.com/feed?needle=keyed-vals-redis>
 [hackage-badge]:      <https://img.shields.io/hackage/v/keyed-vals-redis.svg>
 [hackage]:            <https://hackage.haskell.org/package/keyed-vals-redis>
-[Handle]:             <https://hackage.haskell.org/package/keyed-vals>
+[Handle]:             <https://hackage.haskell.org/package/keyed-vals-0.1.0.0/docs/KeyedVals-Handle.html>
 [Redis]:              <https://redis.io>
