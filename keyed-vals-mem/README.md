@@ -16,5 +16,5 @@ suitable for use in testing and prototyping.
 [hackage-deps]:       <http://packdeps.haskellers.com/feed?needle=keyed-vals-mem>
 [hackage-badge]:      <https://img.shields.io/hackage/v/keyed-vals-mem.svg>
 [hackage]:            <https://hackage.haskell.org/package/keyed-vals-mem>
-[Handle]:             <https://hackage.haskell.org/package/keyed-vals>
+[Handle]:             <https://hackage.haskell.org/package/keyed-vals-0.1.0.0/docs/KeyedVals-Handle.html>
 [Redis]:              <https://redis.io>
