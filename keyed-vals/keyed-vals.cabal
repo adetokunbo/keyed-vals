@@ -30,6 +30,7 @@ library
   exposed-modules:
     KeyedVals.Handle
     KeyedVals.Handle.Aeson
+    KeyedVals.Handle.Catalog
     KeyedVals.Handle.Internal
 
   hs-source-dirs:   src
