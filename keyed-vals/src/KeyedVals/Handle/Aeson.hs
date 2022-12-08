@@ -136,8 +136,8 @@ decodeJsonKeyKVs f = firstEither f . decodeKVs' decoder
 
 {- | Decode a @ValsByKey@ serialized as JSON.
 
-- The key type is deserialized as HttpApiData.
-- The value type is valid to deserialize as JSON.
+- The key type is deserialized using 'FromHttpApiData'.
+- The value type is valid to deserialize using 'FromJSON'.
 -}
 decodeWebKeyKVs ::
   (Ord a, FromHttpApiData a, FromJSON b) =>
@@ -181,7 +181,7 @@ saveJsonKeyKVs f = saveKVs f encodeJSON
 
 {- | Encode a @ValsByKey@ serialized as JSON, completely replacing the current value if present.
 
-- @'Key's@ encode using 'HttpApiData'
+- @'Key's@ encode using 'ToHttpApiData'
 - @'Val's@ encode using 'ToJSON'
 -}
 saveHttpApiKVs ::

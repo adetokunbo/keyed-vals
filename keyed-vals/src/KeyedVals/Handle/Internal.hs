@@ -95,7 +95,7 @@ isIn b (AllOf (key :| ks)) = key == b || b `elem` ks
 instance Exception HandleErr
 
 
--- | Represents a key used to store a 'Value'.
+-- | Represents a key used to store a 'Val'.
 type Key = ByteString
 
 
@@ -103,5 +103,5 @@ type Key = ByteString
 type Val = ByteString
 
 
--- | Represents a related group of @'Value'@s stored by @'Key'@.
+-- | Represents a related group of @'Val'@s stored by @'Key'@.
 type ValsByKey = Map Key Val
