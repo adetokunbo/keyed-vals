@@ -116,7 +116,7 @@ deleteMatchesFrom :: Handle m -> Key -> Glob -> m (Either HandleErr ())
 deleteMatchesFrom h key g = deleteSelectedFrom h key $ Match g
 
 
--- | Determines the number of @'Vals'@ in a @'ValsByKey'@.
+-- | Determines the number of @'Val's@ in a @'ValsByKey'@.
 countKVs :: Handle m -> Key -> m (Either HandleErr Natural)
 countKVs = hCountKVs
 

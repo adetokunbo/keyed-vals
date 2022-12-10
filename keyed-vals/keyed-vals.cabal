@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               keyed-vals
-version:            0.1.0.0
+version:            0.1.1.0
 license:            BSD-3-Clause
 license-file:       LICENSE
 maintainer:         adetokunbo@emio.la
@@ -31,6 +31,7 @@ library
     KeyedVals.Handle
     KeyedVals.Handle.Aeson
     KeyedVals.Handle.Internal
+    KeyedVals.Handle.Typed
 
   hs-source-dirs:   src
   default-language: Haskell2010
