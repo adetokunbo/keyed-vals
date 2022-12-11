@@ -30,6 +30,7 @@ library
   exposed-modules:
     KeyedVals.Handle
     KeyedVals.Handle.Aeson
+    KeyedVals.Handle.Codec
     KeyedVals.Handle.Internal
     KeyedVals.Handle.Typed
 
