@@ -78,7 +78,7 @@ import Numeric.Natural
 {- $use
 
  This section contains information on how to store data using this library.
- First there is a preamble that shows the directives and imports are used in the
+ It starts with a preamble that shows the directives and imports used in the
  examples below
 
  > {\-# LANGUAGE DeriveGeneric #-\}
@@ -93,9 +93,9 @@ import Numeric.Natural
  > import KeyedVals.Handle.Codec.HttpApiData (ViaHttpApiData(..))
  > import qualified KeyedVals.Handle.Mem as Mem
  > import KeyedVals.Handle.Typed
- > import Web.HttpApiData (FromHttpApiData (..), ToHttpApiData (..))
+ > import Web.HttpApiData (FromHttpApiData, ToHttpApiData)
 
- Usage is fairly simple: 'PathOf' and possibly a 'VaryingPathOf' instances for
+ Usage is fairly simple: 'PathOf' and possibly a 'VaryingPathOf' instance for
  storable data types are declared. They describe how the data type is encoded
  and decoded and where in the key-value store the data should be saved.
 
@@ -112,18 +112,19 @@ import Numeric.Natural
  > instance FromJSON Person
  > instance ToJSON Person
 
- Also suppose each Person is stored with a Int key. To do that, a @newtype@ of
- @Int@, is defined, e.g,
+ Also suppose each Person is stored with an Int key. To enable that, define a
+ @newtype@ of @Int@, e.g,
 
- > newtype PersonID = newtype PersonID Int
+ > newtype PersonID = PersonID Int
  >   deriving stock (Eq, Show)
  >   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
 
- And then suppose the collection of @Person@s is stored at a specific fixed path
- in the key-value store. E.g, it is to be used as a runtime cache to speed up
- access to person data, so the path @/runtime/cache/persons@ is used.
+ Also, suppose the collection of @Person@s keyed by @PersonID@ is stored at a
+ specific fixed path in the key-value store. E.g, it is to be used as a runtime
+ cache to speed up access to person data, so the path @/runtime/cache/persons@
+ is used.
 
- To specify all this, we define @DecodesFrom@ and @EncodesAs@ instances for
+ To specify all this, first define @DecodesFrom@ and @EncodesAs@ instances for
  @Person@:
 
  > deriving via (ViaAeson Person) instance DecodesFrom Person
@@ -145,13 +146,13 @@ import Numeric.Natural
  standalone for illustrative purposes. In most cases, they ought to be part
  of the deriving clause of the data type. E.g,
 
- > newtype AnotherID :: AnotherID Int
+ > newtype AnotherID = AnotherID Int
  >   deriving stock (Eq, Show)
  >   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
  >   deriving (DecodesFrom, EncodesAs) via (ViaHttpApiData Int)
 
- Now load and fetch @Person@s from a storage backend using the functions in this
- module, e.g:
+ Now one can load and fetch @Person@s from a storage backend using the functions
+ in this module, e.g:
 
  > >>> handle <- Mem.new
  > >>> tim = Person { name = "Tim", age = 48 }
