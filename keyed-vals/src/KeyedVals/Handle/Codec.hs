@@ -31,8 +31,6 @@ module KeyedVals.Handle.Codec (
 ) where
 
 import Data.Bifunctor (bimap)
-import Data.ByteString (ByteString)
-import qualified Data.ByteString as B
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Text (Text)

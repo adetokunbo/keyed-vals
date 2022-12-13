@@ -37,7 +37,7 @@ module KeyedVals.Handle.Typed (
   PathOf (..),
   VaryingPathOf (..),
   rawPath,
-  subst,
+  expand,
   prepend,
   append,
 
@@ -125,8 +125,8 @@ class PathOf value => VaryingPathOf value where
 
 
 -- | Supports implementation of 'modifyPath' via substitution of 'braces'
-subst :: EncodesAs a => a -> Key -> Key
-subst x template =
+expand :: EncodesAs a => a -> Key -> Key
+expand x template =
   let (prefix, afterPre) = B.breakSubstring braces template
       suffix = B.drop (B.length braces) afterPre
       result = prefix <> encodesAs x <> suffix

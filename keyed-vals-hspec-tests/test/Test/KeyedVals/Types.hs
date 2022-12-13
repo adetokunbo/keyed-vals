@@ -72,12 +72,12 @@ instance PathOf VarTest where
 
 {- | Specify how to derive the path to store @'VarTest's@ in the key-value store
 
-This instance uses 'substWebKey' to replace the @{}@ in the 'KVPath' with the
+This instance uses 'expandWebKey' to replace the @{}@ in the 'KVPath' with the
 var.
 -}
 instance VaryingPathOf VarTest where
   type PathVar VarTest = VarTestID
-  modifyPath _ = subst
+  modifyPath _ = expand
 
 
 {- | A simple type to demonstrate storing at a fixed path
