@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_HADDOCK prune not-home #-}
 
@@ -43,24 +44,26 @@ instances.
 newtype VarTest = VarTest (Either Text Bool)
   deriving (Eq, Show)
   deriving (FromJSON, ToJSON) via (Either Text Bool)
-  deriving (DecodesFrom) via ViaAeson (Either Text Bool)
-  deriving (EncodesAs) via ViaAeson (Either Text Bool)
+
+
+deriving via (ViaAeson (Either Text Bool)) instance DecodesFrom VarTest
+
+
+deriving via (ViaAeson (Either Text Bool)) instance EncodesAs VarTest
 
 
 -- | The keys for each 'VarTest' are @Int@s.
 newtype VarTestKey = VarTestKey Int
   deriving stock (Eq, Show)
   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
-  deriving (DecodesFrom) via ViaHttpApiData Int
-  deriving (EncodesAs) via ViaHttpApiData Int
+  deriving (DecodesFrom, EncodesAs) via ViaHttpApiData Int
 
 
 -- | Groups of 'VarTest' are stored for different 'VarTestID'.
 newtype VarTestID = VarTestId Text
   deriving stock (Eq, Show)
   deriving (IsString, ToHttpApiData, FromHttpApiData) via Text
-  deriving (DecodesFrom) via ViaHttpApiData Text
-  deriving (EncodesAs) via ViaHttpApiData Text
+  deriving (DecodesFrom, EncodesAs) via ViaHttpApiData Text
 
 
 -- | Describe how @'VarTest's@ are stored in the key-value store
@@ -87,8 +90,7 @@ it's just a simple type (tuple) wrapped in newtype to avoid orphan instances.
 newtype FixedTest = FixedTest (Int, Text)
   deriving stock (Eq, Show)
   deriving (FromJSON, ToJSON) via (Int, Text)
-  deriving (DecodesFrom) via ViaAeson (Int, Text)
-  deriving (EncodesAs) via ViaAeson (Int, Text)
+  deriving (DecodesFrom, EncodesAs) via ViaAeson (Int, Text)
 
 
 -- | Specify how @'FixedTest's@ are stored in the key-value store
@@ -102,5 +104,4 @@ instance PathOf FixedTest where
 newtype FixedTestKey = FixedTestKey Int
   deriving stock (Eq, Show)
   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
-  deriving (DecodesFrom) via ViaHttpApiData Int
-  deriving (EncodesAs) via ViaHttpApiData Int
+  deriving (DecodesFrom, EncodesAs) via ViaHttpApiData Int
