@@ -31,6 +31,8 @@ library
     KeyedVals.Handle
     KeyedVals.Handle.Aeson
     KeyedVals.Handle.Codec
+    KeyedVals.Handle.Codec.Aeson
+    KeyedVals.Handle.Codec.HttpApiData
     KeyedVals.Handle.Internal
     KeyedVals.Handle.Typed
 

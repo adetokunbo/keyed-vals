@@ -37,6 +37,9 @@ module KeyedVals.Handle.Typed (
   PathOf (..),
   VaryingPathOf (..),
   rawPath,
+  subst,
+  prepend,
+  append,
 
   -- * unite @PathOf@/@VaryingPathOf@
   TypedPath (..),
@@ -47,9 +50,10 @@ module KeyedVals.Handle.Typed (
 
   -- * module re-exports
   module KeyedVals.Handle,
+  module KeyedVals.Handle.Codec,
 ) where
 
-import Data.Aeson (FromJSON, ToJSON)
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import Data.Functor ((<&>))
 import Data.List.NonEmpty (NonEmpty)
@@ -64,16 +68,8 @@ import KeyedVals.Handle (
   close,
  )
 import qualified KeyedVals.Handle as H
-import KeyedVals.Handle.Aeson (
-  decodeOr',
-  decodeOrGone',
-  decodeWebKeyKVs,
-  jsonVal,
-  saveHttpApiKVs,
-  updateHttpApiKVs,
- )
+import KeyedVals.Handle.Codec
 import Numeric.Natural
-import Web.HttpApiData (FromHttpApiData (..), ToHttpApiData (..))
 
 
 -- | Obtains the actual 'Key' for a given 'TypedKey.Handle.Val' from its 'TypedKey'.
@@ -116,6 +112,30 @@ class KnownSymbol (KVPath value) => PathOf value where
   toKey :: Proxy value -> KeyType value -> Key
 
 
+-- | Suppports implementation of 'toKey' via substitution of 'braces'
+subst :: EncodesAs a => a -> Key -> Key
+subst x template =
+  let (prefix, afterPre) = B.breakSubstring braces template
+      suffix = B.drop (B.length braces) afterPre
+      result = prefix <> encodesAs x <> suffix
+   in if B.isPrefixOf braces afterPre then result else template
+
+
+-- | Used to indicates where a variable should be substitued by 'subst'
+braces :: B.ByteString
+braces = "{}"
+
+
+-- | Supports implementaton of 'toKey'
+append :: EncodesAs a => Key -> a -> Key -> Key
+append sep x template = template <> sep <> encodesAs x
+
+
+-- | Supports implementaton of 'toKey'
+prepend :: EncodesAs a => Key -> a -> Key -> Key
+prepend sep x template = encodesAs x <> sep <> template
+
+
 {- | Allow the storage path specifed by @'PathOf'@ to vary so that related
   groups of key-values may be stored in similar, related paths.
 -}
@@ -153,7 +173,7 @@ rawPath _ = C8.pack $ symbolVal @(KVPath value) Proxy
 -- | Like 'mayLoadFrom', but fails with 'Gone' if the value is missing.
 loadFrom ::
   forall a m.
-  (Monad m, FromJSON a) =>
+  (Monad m, DecodesFrom a) =>
   Handle m ->
   TypedKey a ->
   m (Either HandleErr a)
@@ -169,7 +189,7 @@ loadFrom h aKey =
 -}
 mayLoadFrom ::
   forall a m.
-  (Monad m, FromJSON a, PathOf a) =>
+  (Monad m, DecodesFrom a, PathOf a) =>
   Handle m ->
   TypedKey a ->
   m (Either HandleErr (Maybe a))
@@ -183,15 +203,15 @@ mayLoadFrom h aKey =
  by @'TypedKey'@
 -}
 saveTo ::
-  (Monad m, ToJSON a, PathOf a) =>
+  (Monad m, EncodesAs a, PathOf a) =>
   Handle m ->
   TypedKey a ->
   a ->
   m (Either HandleErr ())
-saveTo h aKey aDict =
+saveTo h aKey someKVs =
   let outer = pathKey $ pathOf aKey
       inner = asKey aKey
-   in H.saveTo h outer inner $ jsonVal aDict
+   in H.saveTo h outer inner $ encodesAs someKVs
 
 
 {- | Like @'KeyedValues.Handle.loadKVs'@ with the path and key values constrained
@@ -199,8 +219,8 @@ saveTo h aKey aDict =
 -}
 loadKVs ::
   ( Monad m
-  , FromJSON a
-  , FromHttpApiData (KeyType a)
+  , DecodesFrom a
+  , DecodesFrom (KeyType a)
   , Ord (KeyType a)
   ) =>
   Handle m ->
@@ -213,33 +233,33 @@ loadKVs h k = H.loadKVs h (pathKey k) >>= pure . orDecodeKVs
  constrained by @'TypedPath'@
 -}
 updateKVs ::
-  (Monad m, ToJSON a, ToHttpApiData (KeyType a), Ord (KeyType a)) =>
+  (Monad m, EncodesAs a, EncodesAs (KeyType a), Ord (KeyType a)) =>
   Handle m ->
   TypedPath a ->
   TypedKVs a ->
   m (Either HandleErr ())
-updateKVs h aKey = updateHttpApiKVs id h $ pathKey aKey
+updateKVs h aKey = updateEncodedKVs h $ pathKey aKey
 
 
 {- | Like @'KeyedValues.Handle.savedKVs'@ with the path and key-values
  constrained by @'TypedPath'@
 -}
 saveKVs ::
-  (Monad m, ToJSON a, ToHttpApiData (KeyType a), Ord (KeyType a)) =>
+  (Monad m, EncodesAs a, EncodesAs (KeyType a), Ord (KeyType a)) =>
   Handle m ->
   TypedPath a ->
   TypedKVs a ->
   m (Either HandleErr ())
-saveKVs h k = saveHttpApiKVs id h $ pathKey k
+saveKVs h k = saveEncodedKVs h $ pathKey k
 
 
 -- | Combines 'saveKVs' and 'loadKVs'
 modKVs ::
   ( Monad m
-  , ToJSON a
-  , FromJSON a
-  , FromHttpApiData (KeyType a)
-  , ToHttpApiData (KeyType a)
+  , EncodesAs a
+  , EncodesAs (KeyType a)
+  , DecodesFrom a
+  , DecodesFrom (KeyType a)
   , Ord (KeyType a)
   ) =>
   (TypedKVs a -> TypedKVs a) ->
@@ -259,9 +279,9 @@ modKVs modDict h aKey = do
 loadSlice ::
   forall m a.
   ( Monad m
-  , FromJSON a
+  , DecodesFrom a
   , PathOf a
-  , FromHttpApiData (KeyType a)
+  , DecodesFrom (KeyType a)
   , Ord (KeyType a)
   ) =>
   Handle m ->
@@ -275,10 +295,10 @@ loadSlice h aKey keys = do
 
 
 orDecodeKVs ::
-  (Ord a, FromHttpApiData a, FromJSON b) =>
+  (Ord a, DecodesFrom a, DecodesFrom b) =>
   Either HandleErr H.ValsByKey ->
   Either HandleErr (Map a b)
-orDecodeKVs = either Left $ decodeWebKeyKVs NotDecoded
+orDecodeKVs = either Left decodeKVs
 
 
 {- | Like @'KeyedValues.Handle.countKVs'@ with the path and key-values
