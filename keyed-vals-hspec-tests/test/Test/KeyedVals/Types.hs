@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_HADDOCK prune not-home #-}
 
@@ -19,22 +20,23 @@ The declared types are used in hspec tests used to validate implementations of '
 -}
 module Test.KeyedVals.Types (
   -- * data types
-  VarTest (..),
-  VarTestKey (..),
+  VarTest (VarTest),
+  VarTestKey,
   VarTestID,
-  FixedTest (..),
-  FixedTestKey (..),
+  FixedTest (FixedTest),
+  FixedTestKey,
 ) where
 
 import Data.Aeson (FromJSON, ToJSON)
 import Data.String (IsString)
 import Data.Text (Text)
-import KeyedVals.Handle.Aeson
+import KeyedVals.Handle.Codec.Aeson (ViaAeson (..))
+import KeyedVals.Handle.Codec.HttpApiData (ViaHttpApiData (..))
 import KeyedVals.Handle.Typed
 import Web.HttpApiData (FromHttpApiData (..), ToHttpApiData (..))
 
 
-{- | A simple type to store with a variable path.
+{- | A simple type to illustrate storing key-values at varying storage paths.
 
 it's just a simple type (Either) wrapped in newtype to avoid orphan
 instances.
@@ -44,52 +46,62 @@ newtype VarTest = VarTest (Either Text Bool)
   deriving (FromJSON, ToJSON) via (Either Text Bool)
 
 
+deriving via (ViaAeson (Either Text Bool)) instance DecodesFrom VarTest
+
+
+deriving via (ViaAeson (Either Text Bool)) instance EncodesAs VarTest
+
+
 -- | The keys for each 'VarTest' are @Int@s.
 newtype VarTestKey = VarTestKey Int
   deriving stock (Eq, Show)
   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
+  deriving (DecodesFrom, EncodesAs) via ViaHttpApiData Int
 
 
--- | Different groups of 'VarTest' are stored for different 'VarTestID'.
+-- | Groups of 'VarTest' are stored for different 'VarTestID'.
 newtype VarTestID = VarTestId Text
   deriving stock (Eq, Show)
   deriving (IsString, ToHttpApiData, FromHttpApiData) via Text
+  deriving (DecodesFrom, EncodesAs) via ViaHttpApiData Text
 
 
--- | Specify how @'VarTest's@ are stored in the key-value store
+-- | Describe how @'VarTest's@ are stored in the key-value store
 instance PathOf VarTest where
   type KVPath VarTest = "/testing/{}/var"
   type KeyType VarTest = VarTestKey
-  toKey _ = webKey
+  toKey _ = encodesAs
 
 
 {- | Specify how to derive the path to store @'VarTest's@ in the key-value store
 
-This instance uses 'substWebKey' to replace the @{}@ in the 'KVPath' with the
-var.
+This instance uses 'expand' to replace the @{}@ in the 'KVPath' with the
+variable portion of the key.
 -}
 instance VaryingPathOf VarTest where
   type PathVar VarTest = VarTestID
-  modifyPath _ = substWebKey
+  modifyPath _ = expand
 
 
-{- | A simple type to store with a fixed path
+{- | A simple type to illustrate storing key-values at a fixed storage path
 
 it's just a simple type (tuple) wrapped in newtype to avoid orphan instances.
 -}
 newtype FixedTest = FixedTest (Int, Text)
   deriving stock (Eq, Show)
   deriving (FromJSON, ToJSON) via (Int, Text)
+  deriving (DecodesFrom, EncodesAs) via ViaAeson (Int, Text)
 
 
 -- | Specify how @'FixedTest's@ are stored in the key-value store
 instance PathOf FixedTest where
   type KVPath FixedTest = "/testing/fixed"
   type KeyType FixedTest = FixedTestKey
-  toKey _ = webKey
+  toKey _ = encodesAs
 
 
 -- | The keys for each 'FixedTest' are @Int@s.
 newtype FixedTestKey = FixedTestKey Int
   deriving stock (Eq, Show)
   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
+  deriving (DecodesFrom, EncodesAs) via ViaHttpApiData Int

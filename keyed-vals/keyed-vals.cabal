@@ -13,8 +13,16 @@ description:
   Provides an abstract [Handle](https://jaspervdj.be/posts/2018-03-08-handle-pattern.html) for
   accessing stored key-value collections, and useful combinators that use Handle.
 
-  E.g, one implementation of Handle accesses collections in
-  in [Redis](https://redis.io/); other backends are possible.
+  One implementation of Handle accesses collections in in
+  [Redis](https://hackage.haskell.org/package/keyed-vals-redis); other backends
+  are possible.
+
+  This library provides a typed interface to the storage backend that allows the
+  path in storage backend to be declaratively linked to the type of data stored;
+  via a simple typeclass definition.
+
+  Read this [short example](https://github.com/adetokunbo/keyed-vals#readme)
+  for an introduction its usage.
 
 category:           Data, Redis
 build-type:         Simple
@@ -30,6 +38,9 @@ library
   exposed-modules:
     KeyedVals.Handle
     KeyedVals.Handle.Aeson
+    KeyedVals.Handle.Codec
+    KeyedVals.Handle.Codec.Aeson
+    KeyedVals.Handle.Codec.HttpApiData
     KeyedVals.Handle.Internal
     KeyedVals.Handle.Typed
 
