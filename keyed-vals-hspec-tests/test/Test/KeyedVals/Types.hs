@@ -35,7 +35,7 @@ import KeyedVals.Handle.Typed
 import Web.HttpApiData (FromHttpApiData (..), ToHttpApiData (..))
 
 
-{- | A simple type to demonstrate storing at variable paths.
+{- | A simple type to illustrate storing key-values at varying storage paths.
 
 it's just a simple type (Either) wrapped in newtype to avoid orphan
 instances.
@@ -72,15 +72,15 @@ instance PathOf VarTest where
 
 {- | Specify how to derive the path to store @'VarTest's@ in the key-value store
 
-This instance uses 'expandWebKey' to replace the @{}@ in the 'KVPath' with the
-var.
+This instance uses 'expand' to replace the @{}@ in the 'KVPath' with the
+variable portion of the key.
 -}
 instance VaryingPathOf VarTest where
   type PathVar VarTest = VarTestID
   modifyPath _ = expand
 
 
-{- | A simple type to demonstrate storing at a fixed path
+{- | A simple type to illustrate storing key-values at a fixed storage path
 
 it's just a simple type (tuple) wrapped in newtype to avoid orphan instances.
 -}

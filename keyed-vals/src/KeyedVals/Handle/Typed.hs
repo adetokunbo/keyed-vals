@@ -124,7 +124,7 @@ class PathOf value => VaryingPathOf value where
   modifyPath :: Proxy value -> PathVar value -> Key -> Key
 
 
--- | Supports implementation of 'modifyPath' via substitution of 'braces'
+-- | Supports implementation of 'modifyPath' via substitution of @{}@ within the 'KVPath'.
 expand :: EncodesAs a => a -> Key -> Key
 expand x template =
   let (prefix, afterPre) = B.breakSubstring braces template
@@ -135,7 +135,7 @@ expand x template =
 
 {- | Supports implementation of 'modifyPath'
 
-Intended for used within the 'KVPath' of instances of 'VaryPathOf', indicates where
+Intended for used within the 'KVPath' of instances of 'VaryingPathOf', indicates where
  a variable should be substituted
 -}
 braces :: B.ByteString
