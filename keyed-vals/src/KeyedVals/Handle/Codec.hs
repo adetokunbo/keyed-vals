@@ -9,6 +9,10 @@ Maintainer  : Tim Emiola <tim@emio.la>
 
 Provides a typeclass that converts types to and from keys or vals and
 combinators that help it to encode data using 'Handle'
+
+This serves to decouple the encoding/decoding, making it straightforward to use
+the typed interface in 'KeyedVals.Handle.Typed' with a wide set of
+encoding/decoding schemes
 -}
 module KeyedVals.Handle.Codec (
   -- * decode/encode support

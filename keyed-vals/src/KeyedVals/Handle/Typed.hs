@@ -17,10 +17,13 @@ Maintainer  : Tim Emiola <adetokunbo@emio.la>
 SPDX-License-Identifier: BSD3
 
 Provides typeclasses, data types and combinators that constrain the @types@ of
-keys and values accessed in the key-value store, while linking them to specific
+keys and values accessed in the key-value store, whilst also linking them to specific
 storage paths.
 -}
 module KeyedVals.Handle.Typed (
+  -- * How use this module
+  -- $use
+
   -- * type-and-path-constrained Handle combinators
   TypedKVs,
   countKVs,
@@ -70,6 +73,93 @@ import KeyedVals.Handle (
 import qualified KeyedVals.Handle as H
 import KeyedVals.Handle.Codec
 import Numeric.Natural
+
+
+{- $use
+
+ This section contains information on how to store data using this library.
+ First there is a preamble that shows the directives and imports are used in the
+ examples below
+
+ > {\-# LANGUAGE DeriveGeneric #-\}
+ > {\-# LANGUAGE DerivingVia #-\}
+ > {\-# LANGUAGE OverloadedStrings #-\}
+ > {\-# LANGUAGE StandaloneDeriving #-\}
+ >
+ > import Data.Aeson (FromJSON, ToJSON)
+ > import Data.Text (Text)
+ > import GHC.Generics (Generic)
+ > import KeyedVals.Handle.Codec.Aeson (ViaAeson(..))
+ > import KeyedVals.Handle.Codec.HttpApiData (ViaHttpApiData(..))
+ > import qualified KeyedVals.Handle.Mem as Mem
+ > import KeyedVals.Handle.Typed
+ > import Web.HttpApiData (FromHttpApiData (..), ToHttpApiData (..))
+
+ Usage is fairly simple: 'PathOf' and possibly a 'VaryingPathOf' instances for
+ storable data types are declared. They describe how the data type is encoded
+ and decoded and where in the key-value store the data should be saved.
+
+ For example, given this data type:
+
+ > data Person = Person
+ >   { name :: Text
+ >   , age  :: Int
+ >   } deriving (Eq, Show, Generic)
+
+ Suppose each @Person@ is to be stored as JSON, via the @Generic@
+ implementation, e.g,
+
+ > instance FromJSON Person
+ > instance ToJSON Person
+
+ Also suppose each Person is stored with a Int key. To do that, a @newtype@ of
+ @Int@, is defined, e.g,
+
+ > newtype PersonID = newtype PersonID Int
+ >   deriving stock (Eq, Show)
+ >   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
+
+ And then suppose the collection of @Person@s is stored at a specific fixed path
+ in the key-value store. E.g, it is to be used as a runtime cache to speed up
+ access to person data, so the path @/runtime/cache/persons@ is used.
+
+ To specify all this, we define @DecodesFrom@ and @EncodesAs@ instances for
+ @Person@:
+
+ > deriving via (ViaAeson Person) instance DecodesFrom Person
+ > deriving via (ViaAeson Person) instance EncodesAs Person
+
+ .. and do the same for @PersonID@:
+
+ > deriving via (ViaHttpApiData Int) instance DecodesFrom PersonID
+ > deriving via (ViaHttpApiData Int) instance EncodesAs PersonID
+
+ Then declare a @PathOf@ instance that binds the types together with the path:
+
+ > instance PathOf Person where
+ >   type KVPath Person = "/runtime/cache/persons"
+ >   type KeyType Person = PersonID
+ >   toKey _ = encodesAs
+
+ Note: the @DecodesFrom@ and @EncodesAs@ deriving statements above were
+ standalone for illustrative purposes. In most cases, they ought to be part
+ of the deriving clause of the data type. E.g,
+
+ > newtype AnotherID :: AnotherID Int
+ >   deriving stock (Eq, Show)
+ >   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
+ >   deriving (DecodesFrom, EncodesAs) via (ViaHttpApiData Int)
+
+ Now load and fetch @Person@s from a storage backend using the functions in this
+ module, e.g:
+
+ > >>> handle <- Mem.new
+ > >>> tim = Person { name = "Tim", age = 48 }
+ > >>> saveTo handle (Raw 1) tim
+ > Right ()
+ > >>> loadFrom handle (Raw 1)
+ > Right (Person { name = "Tim", age = 48 })
+-}
 
 
 -- | Obtains the actual 'Key' for a given 'TypedKey.Handle.Val' from its 'TypedKey'.
