@@ -112,30 +112,6 @@ class KnownSymbol (KVPath value) => PathOf value where
   toKey :: Proxy value -> KeyType value -> Key
 
 
--- | Suppports implementation of 'toKey' via substitution of 'braces'
-subst :: EncodesAs a => a -> Key -> Key
-subst x template =
-  let (prefix, afterPre) = B.breakSubstring braces template
-      suffix = B.drop (B.length braces) afterPre
-      result = prefix <> encodesAs x <> suffix
-   in if B.isPrefixOf braces afterPre then result else template
-
-
--- | Used to indicates where a variable should be substitued by 'subst'
-braces :: B.ByteString
-braces = "{}"
-
-
--- | Supports implementaton of 'toKey'
-append :: EncodesAs a => Key -> a -> Key -> Key
-append sep x template = template <> sep <> encodesAs x
-
-
--- | Supports implementaton of 'toKey'
-prepend :: EncodesAs a => Key -> a -> Key -> Key
-prepend sep x template = encodesAs x <> sep <> template
-
-
 {- | Allow the storage path specifed by @'PathOf'@ to vary so that related
   groups of key-values may be stored in similar, related paths.
 -}
@@ -146,6 +122,34 @@ class PathOf value => VaryingPathOf value where
 
   -- * Combines the raw 'KVPath' and @PathVar to obtain a new path.
   modifyPath :: Proxy value -> PathVar value -> Key -> Key
+
+
+-- | Supports implementation of 'modifyPath' via substitution of 'braces'
+subst :: EncodesAs a => a -> Key -> Key
+subst x template =
+  let (prefix, afterPre) = B.breakSubstring braces template
+      suffix = B.drop (B.length braces) afterPre
+      result = prefix <> encodesAs x <> suffix
+   in if B.isPrefixOf braces afterPre then result else template
+
+
+{- | Supports implementation of 'modifyPath'
+
+Intended for used within the 'KVPath' of instances of 'VaryPathOf', indicates where
+ a variable should be substituted
+-}
+braces :: B.ByteString
+braces = "{}"
+
+
+-- | Supports implementaton of 'modifyPath'.
+append :: EncodesAs a => Key -> a -> Key -> Key
+append sep x template = template <> sep <> encodesAs x
+
+
+-- | Supports implementaton of 'modifyPath'
+prepend :: EncodesAs a => Key -> a -> Key -> Key
+prepend sep x template = encodesAs x <> sep <> template
 
 
 {- | A phantom type indicating either an instance of @'PathOf'@ or of
