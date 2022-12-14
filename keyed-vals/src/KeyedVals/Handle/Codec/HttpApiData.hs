@@ -7,25 +7,25 @@ SPDX-License-Identifier: BSD3
 -}
 module KeyedVals.Handle.Codec.HttpApiData (
   -- * newtypes
-  ViaHttpApiData (..),
+  HttpApiDataOf (..),
 ) where
 
-import KeyedVals.Handle.Codec (DecodesFrom (..), EncodesAs (..))
+import KeyedVals.Handle.Codec (DecodeKV (..), EncodeKV (..))
 import Web.HttpApiData (
   FromHttpApiData (..),
   ToHttpApiData (..),
  )
 
 
-{- | A deriving-via helper type for types that implement 'DecodesFrom' and 'EncodesAs'
- using a 'FromHttpApiData' and 'ToHttpApiData' type classes.
+{- | A deriving-via helper type for types that implement 'DecodeKV' and 'EncodeKV'
+ using 'FromHttpApiData' and 'ToHttpApiData' type classes.
 -}
-newtype ViaHttpApiData a = ViaHttpApiData {fromViaHttpApiData :: a}
+newtype HttpApiDataOf a = HttpApiDataOf {fromHttpApiDataOf :: a}
 
 
-instance FromHttpApiData a => DecodesFrom (ViaHttpApiData a) where
-  decodesFrom = fmap ViaHttpApiData . parseHeader
+instance FromHttpApiData a => DecodeKV (HttpApiDataOf a) where
+  decodeKV = fmap HttpApiDataOf . parseHeader
 
 
-instance ToHttpApiData a => EncodesAs (ViaHttpApiData a) where
-  encodesAs = toHeader . fromViaHttpApiData
+instance ToHttpApiData a => EncodeKV (HttpApiDataOf a) where
+  encodeKV = toHeader . fromHttpApiDataOf

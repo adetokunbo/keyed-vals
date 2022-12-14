@@ -44,11 +44,10 @@ module KeyedVals.Handle.Typed (
   prepend,
   append,
 
-  -- * unite @PathOf@/@VaryingPathOf@
+  -- * unify @PathOf@/@VaryingPathOf@
   TypedPath (..),
   TypedKey (..),
   pathKey,
-  asKey,
   pathOf,
 
   -- * module re-exports
@@ -89,8 +88,8 @@ import Numeric.Natural
  > import Data.Aeson (FromJSON, ToJSON)
  > import Data.Text (Text)
  > import GHC.Generics (Generic)
- > import KeyedVals.Handle.Codec.Aeson (ViaAeson(..))
- > import KeyedVals.Handle.Codec.HttpApiData (ViaHttpApiData(..))
+ > import KeyedVals.Handle.Codec.Aeson (AesonOf(..))
+ > import KeyedVals.Handle.Codec.HttpApiData (HttpApiDataOf(..))
  > import qualified KeyedVals.Handle.Mem as Mem
  > import KeyedVals.Handle.Typed
  > import Web.HttpApiData (FromHttpApiData, ToHttpApiData)
@@ -124,49 +123,42 @@ import Numeric.Natural
  cache to speed up access to person data, so the path @/runtime/cache/persons@
  is used.
 
- To specify all this, first define @DecodesFrom@ and @EncodesAs@ instances for
+ To specify all this, first define @DecodeKV@ and @EncodeKV@ instances for
  @Person@:
 
- > deriving via (ViaAeson Person) instance DecodesFrom Person
- > deriving via (ViaAeson Person) instance EncodesAs Person
+ > deriving via (AesonOf Person) instance DecodeKV Person
+ > deriving via (AesonOf Person) instance EncodeKV Person
 
  .. and do the same for @PersonID@:
 
- > deriving via (ViaHttpApiData Int) instance DecodesFrom PersonID
- > deriving via (ViaHttpApiData Int) instance EncodesAs PersonID
+ > deriving via (HttpApiDataOf Int) instance DecodeKV PersonID
+ > deriving via (HttpApiDataOf Int) instance EncodeKV PersonID
 
  Then declare a @PathOf@ instance that binds the types together with the path:
 
  > instance PathOf Person where
  >   type KVPath Person = "/runtime/cache/persons"
  >   type KeyType Person = PersonID
- >   toKey _ = encodesAs
 
- Note: the @DecodesFrom@ and @EncodesAs@ deriving statements above were
+ Note: the @DecodeKV@ and @EncodeKV@ deriving statements above were
  standalone for illustrative purposes. In most cases, they ought to be part
  of the deriving clause of the data type. E.g,
 
  > newtype AnotherID = AnotherID Int
  >   deriving stock (Eq, Show)
  >   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
- >   deriving (DecodesFrom, EncodesAs) via (ViaHttpApiData Int)
+ >   deriving (DecodeKV, EncodeKV) via (HttpApiDataOf Int)
 
  Now one can load and fetch @Person@s from a storage backend using the functions
  in this module, e.g:
 
  > >>> handle <- Mem.new
  > >>> tim = Person { name = "Tim", age = 48 }
- > >>> saveTo handle (Raw 1) tim
+ > >>> saveTo handle (AsKey 1) tim
  > Right ()
- > >>> loadFrom handle (Raw 1)
+ > >>> loadFrom handle (AsKey 1)
  > Right (Person { name = "Tim", age = 48 })
 -}
-
-
--- | Obtains the actual 'Key' for a given 'TypedKey.Handle.Val' from its 'TypedKey'.
-asKey :: forall v. TypedKey v -> Key
-asKey (Raw x) = toKey @v Proxy x
-asKey (Extended _ x) = toKey @v Proxy x
 
 
 -- | Obtains the path indicted by a 'TypedPath' as a 'Key'.
@@ -176,8 +168,8 @@ pathKey (Variable part) = modifyPath @v Proxy part $ rawPath @v Proxy
 
 
 -- | Derives the 'TypedPath' corresponding to a 'TypedKey'.
-pathOf :: forall v. TypedKey v -> TypedPath v
-pathOf (Raw _) = Fixed
+pathOf :: TypedKey v -> TypedPath v
+pathOf (AsKey _) = Fixed
 pathOf (Extended part _) = Variable part
 
 
@@ -190,17 +182,19 @@ type TypedKVs value = Map (KeyType value) value
 {- | Links the storage path of a group of key-values to the types of the key and
    value.
 -}
-class KnownSymbol (KVPath value) => PathOf value where
+class
+  ( KnownSymbol (KVPath value)
+  , EncodeKV (KeyType value)
+  , DecodeKV (KeyType value)
+  ) =>
+  PathOf value
+  where
   -- * the storage path where the key-values are saved
   type KVPath value :: Symbol
 
 
   -- * the type of keys in this group of key-values
   type KeyType value
-
-
-  -- * specifies how to convert an 'KeyType' to a 'Key'
-  toKey :: Proxy value -> KeyType value -> Key
 
 
 {- | Allow the storage path specifed by @'PathOf'@ to vary so that related
@@ -216,11 +210,11 @@ class PathOf value => VaryingPathOf value where
 
 
 -- | Supports implementation of 'modifyPath' via substitution of @{}@ within the 'KVPath'.
-expand :: EncodesAs a => a -> Key -> Key
+expand :: EncodeKV a => a -> Key -> Key
 expand x template =
   let (prefix, afterPre) = B.breakSubstring braces template
       suffix = B.drop (B.length braces) afterPre
-      result = prefix <> encodesAs x <> suffix
+      result = prefix <> encodeKV x <> suffix
    in if B.isPrefixOf braces afterPre then result else template
 
 
@@ -234,13 +228,13 @@ braces = "{}"
 
 
 -- | Supports implementaton of 'modifyPath'.
-append :: EncodesAs a => Key -> a -> Key -> Key
-append sep x template = template <> sep <> encodesAs x
+append :: EncodeKV a => Key -> a -> Key -> Key
+append sep x template = template <> sep <> encodeKV x
 
 
 -- | Supports implementaton of 'modifyPath'
-prepend :: EncodesAs a => Key -> a -> Key -> Key
-prepend sep x template = encodesAs x <> sep <> template
+prepend :: EncodeKV a => Key -> a -> Key -> Key
+prepend sep x template = encodeKV x <> sep <> template
 
 
 {- | A phantom type indicating either an instance of @'PathOf'@ or of
@@ -256,8 +250,13 @@ data TypedPath v where
 
 -- | Similar to 'TypedPath', but includes an actual key along with the phantom type.
 data TypedKey v where
-  Raw :: (PathOf v) => KeyType v -> TypedKey v
+  AsKey :: (PathOf v) => KeyType v -> TypedKey v
   Extended :: (VaryingPathOf v) => PathVar v -> KeyType v -> TypedKey v
+
+
+instance EncodeKV (TypedKey v) where
+  encodeKV (AsKey x) = encodeKV x
+  encodeKV (Extended _ x) = encodeKV x
 
 
 -- | Obtain the raw path to key-values that implement 'PathOf'.
@@ -268,13 +267,13 @@ rawPath _ = C8.pack $ symbolVal @(KVPath value) Proxy
 -- | Like 'mayLoadFrom', but fails with 'Gone' if the value is missing.
 loadFrom ::
   forall a m.
-  (Monad m, DecodesFrom a) =>
+  (Monad m, DecodeKV a) =>
   Handle m ->
   TypedKey a ->
   m (Either HandleErr a)
 loadFrom h aKey =
   let outer = pathKey $ pathOf aKey
-      inner = asKey aKey
+      inner = encodeKV aKey
       full = outer <> "//" <> inner
    in H.loadFrom h outer inner <&> decodeOrGone' full
 
@@ -284,13 +283,13 @@ loadFrom h aKey =
 -}
 mayLoadFrom ::
   forall a m.
-  (Monad m, DecodesFrom a, PathOf a) =>
+  (Monad m, DecodeKV a, PathOf a) =>
   Handle m ->
   TypedKey a ->
   m (Either HandleErr (Maybe a))
 mayLoadFrom h aKey =
   let outer = pathKey $ pathOf aKey
-      inner = asKey aKey
+      inner = encodeKV aKey
    in H.loadFrom h outer inner <&> decodeOr'
 
 
@@ -298,15 +297,15 @@ mayLoadFrom h aKey =
  by @'TypedKey'@
 -}
 saveTo ::
-  (Monad m, EncodesAs a, PathOf a) =>
+  (Monad m, EncodeKV a, PathOf a) =>
   Handle m ->
   TypedKey a ->
   a ->
   m (Either HandleErr ())
 saveTo h aKey someKVs =
   let outer = pathKey $ pathOf aKey
-      inner = asKey aKey
-   in H.saveTo h outer inner $ encodesAs someKVs
+      inner = encodeKV aKey
+   in H.saveTo h outer inner $ encodeKV someKVs
 
 
 {- | Like @'KeyedValues.Handle.loadKVs'@ with the path and key values constrained
@@ -314,8 +313,8 @@ saveTo h aKey someKVs =
 -}
 loadKVs ::
   ( Monad m
-  , DecodesFrom a
-  , DecodesFrom (KeyType a)
+  , DecodeKV a
+  , DecodeKV (KeyType a)
   , Ord (KeyType a)
   ) =>
   Handle m ->
@@ -328,7 +327,7 @@ loadKVs h k = H.loadKVs h (pathKey k) >>= pure . orDecodeKVs
  constrained by @'TypedPath'@
 -}
 updateKVs ::
-  (Monad m, EncodesAs a, EncodesAs (KeyType a), Ord (KeyType a)) =>
+  (Monad m, EncodeKV a, EncodeKV (KeyType a), Ord (KeyType a)) =>
   Handle m ->
   TypedPath a ->
   TypedKVs a ->
@@ -340,7 +339,7 @@ updateKVs h aKey = updateEncodedKVs h $ pathKey aKey
  constrained by @'TypedPath'@
 -}
 saveKVs ::
-  (Monad m, EncodesAs a, EncodesAs (KeyType a), Ord (KeyType a)) =>
+  (Monad m, EncodeKV a, EncodeKV (KeyType a), Ord (KeyType a)) =>
   Handle m ->
   TypedPath a ->
   TypedKVs a ->
@@ -351,10 +350,10 @@ saveKVs h k = saveEncodedKVs h $ pathKey k
 -- | Combines 'saveKVs' and 'loadKVs'
 modKVs ::
   ( Monad m
-  , EncodesAs a
-  , EncodesAs (KeyType a)
-  , DecodesFrom a
-  , DecodesFrom (KeyType a)
+  , EncodeKV a
+  , EncodeKV (KeyType a)
+  , DecodeKV a
+  , DecodeKV (KeyType a)
   , Ord (KeyType a)
   ) =>
   (TypedKVs a -> TypedKVs a) ->
@@ -374,9 +373,9 @@ modKVs modDict h aKey = do
 loadSlice ::
   forall m a.
   ( Monad m
-  , DecodesFrom a
+  , DecodeKV a
   , PathOf a
-  , DecodesFrom (KeyType a)
+  , DecodeKV (KeyType a)
   , Ord (KeyType a)
   ) =>
   Handle m ->
@@ -385,12 +384,12 @@ loadSlice ::
   m (Either HandleErr (TypedKVs a))
 loadSlice h aKey keys = do
   let key = pathKey aKey
-      selection = AllOf $ fmap (toKey @a Proxy) keys
+      selection = AllOf $ fmap encodeKV keys
   H.loadSlice h key selection >>= pure . orDecodeKVs
 
 
 orDecodeKVs ::
-  (Ord a, DecodesFrom a, DecodesFrom b) =>
+  (Ord a, DecodeKV a, DecodeKV b) =>
   Either HandleErr H.ValsByKey ->
   Either HandleErr (Map a b)
 orDecodeKVs = either Left decodeKVs

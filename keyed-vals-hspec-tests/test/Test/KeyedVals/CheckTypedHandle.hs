@@ -38,7 +38,7 @@ checkFixedPathed = do
     checkLength @FixedTest Fixed 2
 
     it "should update an indexed value correctly" $ \h -> do
-      let key = Raw fixedK1
+      let key = AsKey fixedK1
           want = FixedTest (1, "changed")
       endsRight_ $ saveTo h key want
       loadFrom h key `endsRight` want
@@ -47,7 +47,7 @@ checkFixedPathed = do
     checkLength @FixedTest Fixed 2
 
     it "should add an indexed value correctly" $ \h -> do
-      let added = Raw fixedK3
+      let added = AsKey fixedK3
           want = FixedTest (3, "added")
       mayLoadFrom h added `endsRight` Nothing
       endsRight_ $ saveTo h added want
@@ -57,8 +57,8 @@ checkFixedPathed = do
 
     it "should update the key-values correctly" $ \h -> do
       endsRight_ $ updateKVs h Fixed moreFixedKVs
-      mayLoadFrom h (Raw fixedK1) `endsRight` Just fixedV3
-      mayLoadFrom h (Raw fixedK4) `endsRight` Just fixedV4
+      mayLoadFrom h (AsKey fixedK1) `endsRight` Just fixedV3
+      mayLoadFrom h (AsKey fixedK4) `endsRight` Just fixedV4
 
     it "should fetch a subset of the key-values as a dict correctly" $ \h -> do
       let selection = fixedK1 :| [fixedK4]

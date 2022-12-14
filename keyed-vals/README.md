@@ -29,8 +29,8 @@ E.g,
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Text (Text)
 import GHC.Generics (Generic)
-import KeyedVals.Handle.Codec.Aeson (ViaAeson(..))
-import KeyedVals.Handle.Codec.HttpApiData (ViaHttpApiData(..))
+import KeyedVals.Handle.Codec.Aeson (AesonOf(..))
+import KeyedVals.Handle.Codec.HttpApiData (HttpApiDataOf(..))
 import qualified KeyedVals.Handle.Mem as Mem
 import KeyedVals.Handle.Typed
 import Web.HttpApiData (FromHttpApiData (..), ToHttpApiData (..))
@@ -67,40 +67,39 @@ newtype PersonID = newtype PersonID Int
 in the key-value store. E.g, it is to be used as a runtime cache to speed up
 access to person data, so the path @/runtime/cache/persons@ is used.
 
-To specify all of this, first define @DecodesFrom@ and @EncodesAs@ instances for
+To specify all of this, first define @DecodeKV@ and @EncodeKV@ instances for
 @Person@:
 -}
-deriving via (ViaAeson Person) instance DecodesFrom Person
-deriving via (ViaAeson Person) instance EncodesAs Person
+deriving via (AesonOf Person) instance DecodeKV Person
+deriving via (AesonOf Person) instance EncodeKV Person
 
 {- .. and do the same for @PersonID@: -}
-deriving via (ViaHttpApiData Int) instance DecodesFrom PersonID
-deriving via (ViaHttpApiData Int) instance EncodesAs PersonID
+deriving via (HttpApiDataOf Int) instance DecodeKV PersonID
+deriving via (HttpApiDataOf Int) instance EncodeKV PersonID
 
 
 {- Then declare a @PathOf@ instance that binds the types together with the path: -}
 instance PathOf Person where
   type KVPath Person = "/runtime/cache/persons"
   type KeyType Person = PersonID
-  toKey _ = encodesAs
 
-{- Note: the @DecodesFrom@ and @EncodesAs@ deriving statements above were
+{- Note: the @DecodeKV@ and @EncodeKV@ deriving statements above were
 standalone for illustrative purposes. In most cases, they ought to be part
 of the deriving clause of the data type. E.g,
 -}
 newtype AnotherID = AnotherID Int
   deriving stock (Eq, Show)
   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
-  deriving (DecodesFrom, EncodesAs) via (ViaHttpApiData Int)
+  deriving (DecodeKV, EncodeKV) via (HttpApiDataOf Int)
 
 {- Now load and fetch @Person@s from a storage backend using the functions in this
 module, e.g:
 
 >>> handle <- Mem.new
 >>> tim = Person { name = "Tim", age = 48 }
->>> saveTo handle (Raw 1) tim
+>>> saveTo handle (AsKey 1) tim
 Right ()
->>> loadFrom handle (Raw 1)
+>>> loadFrom handle (AsKey 1)
 Right (Person { name = "Tim", age = 48 })
 
 -}

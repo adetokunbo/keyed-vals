@@ -21,20 +21,20 @@ module Test.KeyedVals.Hspec (
   module Test.KeyedVals.Prelude,
 ) where
 
-import qualified Test.KeyedVals.CheckHandle as Raw
+import qualified Test.KeyedVals.CheckHandle as LessTyped
 import qualified Test.KeyedVals.CheckTypedHandle as Typed
 import Test.KeyedVals.Prelude
 
 
 checkHandle :: SpecWith (Handle IO)
 checkHandle = do
-  Raw.spec
+  LessTyped.spec
   Typed.spec
 
 
 setupFixture :: Handle IO -> IO (Handle IO)
 setupFixture h = do
-  void $ Raw.setupFixture h
+  void $ LessTyped.setupFixture h
   void $ Typed.setupFixture h
   pure h
 

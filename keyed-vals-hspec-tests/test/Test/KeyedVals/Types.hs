@@ -30,8 +30,8 @@ module Test.KeyedVals.Types (
 import Data.Aeson (FromJSON, ToJSON)
 import Data.String (IsString)
 import Data.Text (Text)
-import KeyedVals.Handle.Codec.Aeson (ViaAeson (..))
-import KeyedVals.Handle.Codec.HttpApiData (ViaHttpApiData (..))
+import KeyedVals.Handle.Codec.Aeson (AesonOf (..))
+import KeyedVals.Handle.Codec.HttpApiData (HttpApiDataOf (..))
 import KeyedVals.Handle.Typed
 import Web.HttpApiData (FromHttpApiData (..), ToHttpApiData (..))
 
@@ -46,31 +46,30 @@ newtype VarTest = VarTest (Either Text Bool)
   deriving (FromJSON, ToJSON) via (Either Text Bool)
 
 
-deriving via (ViaAeson (Either Text Bool)) instance DecodesFrom VarTest
+deriving via (AesonOf (Either Text Bool)) instance DecodeKV VarTest
 
 
-deriving via (ViaAeson (Either Text Bool)) instance EncodesAs VarTest
+deriving via (AesonOf (Either Text Bool)) instance EncodeKV VarTest
 
 
 -- | The keys for each 'VarTest' are @Int@s.
 newtype VarTestKey = VarTestKey Int
   deriving stock (Eq, Show)
   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
-  deriving (DecodesFrom, EncodesAs) via ViaHttpApiData Int
+  deriving (DecodeKV, EncodeKV) via HttpApiDataOf Int
 
 
 -- | Groups of 'VarTest' are stored for different 'VarTestID'.
 newtype VarTestID = VarTestId Text
   deriving stock (Eq, Show)
   deriving (IsString, ToHttpApiData, FromHttpApiData) via Text
-  deriving (DecodesFrom, EncodesAs) via ViaHttpApiData Text
+  deriving (DecodeKV, EncodeKV) via HttpApiDataOf Text
 
 
 -- | Describe how @'VarTest's@ are stored in the key-value store
 instance PathOf VarTest where
   type KVPath VarTest = "/testing/{}/var"
   type KeyType VarTest = VarTestKey
-  toKey _ = encodesAs
 
 
 {- | Specify how to derive the path to store @'VarTest's@ in the key-value store
@@ -90,18 +89,17 @@ it's just a simple type (tuple) wrapped in newtype to avoid orphan instances.
 newtype FixedTest = FixedTest (Int, Text)
   deriving stock (Eq, Show)
   deriving (FromJSON, ToJSON) via (Int, Text)
-  deriving (DecodesFrom, EncodesAs) via ViaAeson (Int, Text)
+  deriving (DecodeKV, EncodeKV) via AesonOf (Int, Text)
 
 
 -- | Specify how @'FixedTest's@ are stored in the key-value store
 instance PathOf FixedTest where
   type KVPath FixedTest = "/testing/fixed"
   type KeyType FixedTest = FixedTestKey
-  toKey _ = encodesAs
 
 
 -- | The keys for each 'FixedTest' are @Int@s.
 newtype FixedTestKey = FixedTestKey Int
   deriving stock (Eq, Show)
   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
-  deriving (DecodesFrom, EncodesAs) via ViaHttpApiData Int
+  deriving (DecodeKV, EncodeKV) via HttpApiDataOf Int
