@@ -7,7 +7,7 @@ SPDX-License-Identifier: BSD3
 -}
 module KeyedVals.Handle.Codec.Aeson (
   -- * newtypes
-  ViaAeson (..),
+  AesonOf (..),
 ) where
 
 import Data.Aeson (
@@ -18,18 +18,18 @@ import Data.Aeson (
  )
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text as Text
-import KeyedVals.Handle.Codec (DecodesFrom (..), EncodesAs (..))
+import KeyedVals.Handle.Codec (DecodeKV (..), EncodeKV (..))
 
 
-{- | A deriving-via helper type for types that implement 'DecodesFrom' and 'EncodesAs'
- using a Aeson's 'FromJSON' and 'ToJSON' type classes.
+{- | A deriving-via helper type for types that implement 'DecodeKV' and 'EncodeKV'
+ using Aeson's 'FromJSON' and 'ToJSON' type classes.
 -}
-newtype ViaAeson a = ViaAeson {fromViaAeson :: a}
+newtype AesonOf a = AesonOf {fromAesonOf :: a}
 
 
-instance FromJSON a => DecodesFrom (ViaAeson a) where
-  decodesFrom = either (Left . Text.pack) (Right . ViaAeson) . eitherDecodeStrict'
+instance FromJSON a => DecodeKV (AesonOf a) where
+  decodeKV = either (Left . Text.pack) (Right . AesonOf) . eitherDecodeStrict'
 
 
-instance ToJSON a => EncodesAs (ViaAeson a) where
-  encodesAs = LBS.toStrict . encode . fromViaAeson
+instance ToJSON a => EncodeKV (AesonOf a) where
+  encodeKV = LBS.toStrict . encode . fromAesonOf

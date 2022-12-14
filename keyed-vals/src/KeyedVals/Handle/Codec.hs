@@ -16,8 +16,8 @@ encoding/decoding schemes
 -}
 module KeyedVals.Handle.Codec (
   -- * decode/encode support
-  EncodesAs (..),
-  DecodesFrom (..),
+  EncodeKV (..),
+  DecodeKV (..),
   decodeOr,
   decodeOr',
   decodeOrGone,
@@ -42,13 +42,13 @@ import KeyedVals.Handle
 
 
 -- | Specifies how type @a@ encodes as a @Key@ or a @Val@.
-class EncodesAs a where
-  encodesAs :: a -> Val
+class EncodeKV a where
+  encodeKV :: a -> Val
 
 
 -- | Specifies how type @a@ can be decoded from a @Key@ or a @Val@.
-class DecodesFrom a where
-  decodesFrom :: Val -> Either Text a
+class DecodeKV a where
+  decodeKV :: Val -> Either Text a
 
 
 -- | Specifies how to turn 'HandleErr' into a custom error type @err@.
@@ -62,7 +62,7 @@ instance FromHandleErr HandleErr where
 
 -- | Like 'decodeOr', but transforms 'Nothing' to 'Gone'.
 decodeOrGone ::
-  (DecodesFrom b, FromHandleErr err) =>
+  (DecodeKV b, FromHandleErr err) =>
   Key ->
   Maybe Val ->
   Either err b
@@ -74,7 +74,7 @@ decodeOrGone key x =
 
 -- | Like 'decodeOr'', but transforms 'Nothing' to 'Gone'.
 decodeOrGone' ::
-  (DecodesFrom b, FromHandleErr err) =>
+  (DecodeKV b, FromHandleErr err) =>
   Key ->
   Either err (Maybe Val) ->
   Either err b
@@ -83,7 +83,7 @@ decodeOrGone' key = either Left $ decodeOrGone key
 
 -- | Decode a value, transformi decode errors to type @err@.
 decodeOr' ::
-  (DecodesFrom b, FromHandleErr err) =>
+  (DecodeKV b, FromHandleErr err) =>
   Either err (Maybe Val) ->
   Either err (Maybe b)
 decodeOr' = either Left decodeOr
@@ -91,23 +91,23 @@ decodeOr' = either Left decodeOr
 
 -- | Decode a value, transforming decode errors to type @err@.
 decodeOr ::
-  (DecodesFrom a, FromHandleErr err) =>
+  (DecodeKV a, FromHandleErr err) =>
   Maybe Val ->
   Either err (Maybe a)
-decodeOr = maybe (pure Nothing) (fmap Just . firstEither notDecoded . decodesFrom)
+decodeOr = maybe (pure Nothing) (fmap Just . firstEither notDecoded . decodeKV)
 
 
 notDecoded :: FromHandleErr err => Text -> err
 notDecoded = fromHandleErr . NotDecoded
 
 
-decode' :: (FromHandleErr err, DecodesFrom a) => Val -> Either err a
-decode' = either (Left . notDecoded) Right . decodesFrom
+decode' :: (FromHandleErr err, DecodeKV a) => Val -> Either err a
+decode' = either (Left . notDecoded) Right . decodeKV
 
 
 -- | Decodes a 'Map' from a @ValsByKey@ with encoded @Keys@ and @Vals@.
 decodeKVs ::
-  (Ord a, DecodesFrom a, DecodesFrom b, FromHandleErr err) =>
+  (Ord a, DecodeKV a, DecodeKV b, FromHandleErr err) =>
   ValsByKey ->
   Either err (Map a b)
 decodeKVs =
@@ -121,7 +121,7 @@ decodeKVs =
 
 -- | Like 'saveEncodedKVs', but updates the keys rather than completely replacing it.
 updateEncodedKVs ::
-  (Ord a, EncodesAs a, EncodesAs b, Monad m, FromHandleErr err) =>
+  (Ord a, EncodeKV a, EncodeKV b, Monad m, FromHandleErr err) =>
   Handle m ->
   Key ->
   Map a b ->
@@ -134,7 +134,7 @@ updateEncodedKVs = saveOrUpdateKVs True
 - 'HandleErr' may be transformed to different error type
 -}
 saveEncodedKVs ::
-  (Ord a, EncodesAs a, EncodesAs b, Monad m, FromHandleErr err) =>
+  (Ord a, EncodeKV a, EncodeKV b, Monad m, FromHandleErr err) =>
   Handle m ->
   Key ->
   Map a b ->
@@ -144,7 +144,7 @@ saveEncodedKVs = saveOrUpdateKVs False
 
 -- | Encode any 'Map' as a 'ValsByKey' by encoding its @'Key's@ and @'Val's@.
 saveOrUpdateKVs ::
-  (Ord a, EncodesAs a, EncodesAs b, Monad m, FromHandleErr err) =>
+  (Ord a, EncodeKV a, EncodeKV b, Monad m, FromHandleErr err) =>
   -- | when @True@, the dict is updated
   Bool ->
   Handle m ->
@@ -155,7 +155,7 @@ saveOrUpdateKVs _ _ _ kvs | Map.size kvs == 0 = pure $ Right ()
 saveOrUpdateKVs update h key dict =
   let asRemote =
         Map.fromList
-          . fmap (bimap encodesAs encodesAs)
+          . fmap (bimap encodeKV encodeKV)
           . Map.toList
       saver = if update then (updateKVs h) else (saveKVs h)
    in fmap (firstEither fromHandleErr) $ saver key $ asRemote dict
