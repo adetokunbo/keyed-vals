@@ -59,7 +59,7 @@ instance ToJSON Person
 {- Also suppose each Person is stored with an @Int@ key. To enable that,
 define a @newtype@ of @Int@, e.g,
 -}
-newtype PersonID = newtype PersonID Int
+newtype PersonID = PersonID Int
   deriving stock (Eq, Show)
   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
 
@@ -87,22 +87,56 @@ instance PathOf Person where
 standalone for illustrative purposes. In most cases, they ought to be part
 of the deriving clause of the data type. E.g,
 -}
-newtype AnotherID = AnotherID Int
+newtype FriendID = FriendID Int
   deriving stock (Eq, Show)
   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
   deriving (DecodeKV, EncodeKV) via (HttpApiDataOf Int)
 
-{- Now load and fetch @Person@s from a storage backend using the functions in this
-module, e.g:
+{- Now save and fetch @Person@s from a storage backend as follows:
 
 >>> handle <- Mem.new
 >>> tim = Person { name = "Tim", age = 48 }
->>> saveTo handle (AsKey 1) tim
+>>> saveTo handle (key 1) tim
 Right ()
->>> loadFrom handle (AsKey 1)
+>>> loadFrom handle (key 1)
 Right (Person { name = "Tim", age = 48 })
 
 -}
+
+{- Suppose that in addition to the main collection of @Person@s, it's
+necessary to store a distinct list of the friends of each @Person@.
+I.e, store a small keyed collection of @Person@s per person.
+
+One way to achieve is to store each such collection at a similar path, e.g
+suppose the friends for the person with @anID@ are stored at
+@/app/person/<anId>/friends@.
+
+This can be implemented using the existing types along with another newtype
+that has @PathOf@ and @VaryingPathOf@ instances as follows
+-}
+
+newtype Friend = Friend Person
+  deriving stock (Eq, Show)
+  deriving (FromJSON, ToJSON, EncodeKV, DecodeKV) via Person
+
+instance PathOf Friend where
+  type KVPath Friend = "/app/person/{}/friends"
+  type KeyType Friend = FriendID -- as defined earlier
+
+instance VaryingPathOf Friend where
+  type PathVar Friend = PersonID
+  modifyPath _ = expand -- implements modifyPath by expanding the braces to PathVar
+
+
+{- This allows @Friends@ to be saved or fetched as follows:
+
+>>> dave = Person { name = "Dave", age = 61 }
+>>> saveTo handle (key 2) dave -- save in main person list
+Right ()
+>>> saveTo handle ( 1 // 2) (Friend dave) -- save as friend of tim (person 1)
+Right ()
+-}
+
 ```
 
 [hackage-deps-badge]:   <https://img.shields.io/hackage-deps/v/keyed-vals.svg>
