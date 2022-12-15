@@ -12,12 +12,19 @@ synopsis:
   Implements a keyed-vals Handle using in-process memory
 
 description:
+  keyed-vals provides a typed interface to a storage backend that allows the
+  path in the storage backend to be declaratively linked to the types of data
+  stored via a straightforward typeclass declaration.
+
+  Read this [short example](https://github.com/adetokunbo/keyed-vals/tree/main/keyed-vals#example)
+  for an introduction its usage.
+
   While the goal of [keyed-vals](https://hackage.haskell.org/package/keyed-vals) is
   to provide access to storage services like [Redis](https://redis.io), the
   abstract definition of __Handle__ also enables this in-process implementation.
 
-  It is intended be used as a drop-in replacement for use in testing and rapid
-  prototyping.
+  This package, keyed-vals-mem, is intended as a drop-in replacement for use in
+  testing and rapid prototyping.
 
 category:           Data, Redis
 build-type:         Simple

@@ -18,8 +18,15 @@ description:
   I.e, while Redis supports many features; the abstract Handle in keyed-vals
   just supports operations that access collections of key-values
 
-  This package provides a concrete implementation of Handle that uses Redis as
-  the underlying storage service.
+  Also, keyed-vals provides a typed interface to a storage backend that allows
+  the path in the storage backend to be declaratively linked to the types of
+  data stored via a straightforward typeclass declaration.
+
+  Read this [short example](https://github.com/adetokunbo/keyed-vals/tree/main/keyed-vals#example)
+  for an introduction its usage.
+
+  This package, keyed-vals-redis, provides a concrete implementation of Handle
+  that uses Redis as the underlying storage service.
 
 category:           Data, Redis
 build-type:         Simple
