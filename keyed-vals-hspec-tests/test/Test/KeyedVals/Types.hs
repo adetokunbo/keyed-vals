@@ -20,11 +20,11 @@ The declared types are used in hspec tests used to validate implementations of '
 -}
 module Test.KeyedVals.Types (
   -- * data types
-  VarTest (VarTest),
-  VarTestKey,
-  VarTestID,
-  FixedTest (FixedTest),
-  FixedTestKey,
+  VarDemo (VarDemo),
+  VarDemoKey,
+  VarDemoID,
+  FixedDemo (FixedDemo),
+  FixedDemoKey,
 ) where
 
 import Data.Aeson (FromJSON, ToJSON)
@@ -41,44 +41,44 @@ import Web.HttpApiData (FromHttpApiData (..), ToHttpApiData (..))
 it's just a simple type (Either) wrapped in newtype to avoid orphan
 instances.
 -}
-newtype VarTest = VarTest (Either Text Bool)
+newtype VarDemo = VarDemo (Either Text Bool)
   deriving (Eq, Show)
   deriving (FromJSON, ToJSON) via (Either Text Bool)
 
 
-deriving via (AesonOf (Either Text Bool)) instance DecodeKV VarTest
+deriving via (AesonOf (Either Text Bool)) instance DecodeKV VarDemo
 
 
-deriving via (AesonOf (Either Text Bool)) instance EncodeKV VarTest
+deriving via (AesonOf (Either Text Bool)) instance EncodeKV VarDemo
 
 
--- | The keys for each 'VarTest' are @Int@s.
-newtype VarTestKey = VarTestKey Int
+-- | The keys for each 'VarDemo' are @Int@s.
+newtype VarDemoKey = VarDemoKey Int
   deriving stock (Eq, Show)
   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
   deriving (DecodeKV, EncodeKV) via HttpApiDataOf Int
 
 
--- | Groups of 'VarTest' are stored for different 'VarTestID'.
-newtype VarTestID = VarTestId Text
+-- | Groups of 'VarDemo' are stored for different 'VarDemoID'.
+newtype VarDemoID = VarDemoId Text
   deriving stock (Eq, Show)
   deriving (IsString, ToHttpApiData, FromHttpApiData) via Text
   deriving (DecodeKV, EncodeKV) via HttpApiDataOf Text
 
 
--- | Describe how @'VarTest's@ are stored in the key-value store
-instance PathOf VarTest where
-  type KVPath VarTest = "/testing/{}/var"
-  type KeyType VarTest = VarTestKey
+-- | Describe how @'VarDemo's@ are stored in the key-value store
+instance PathOf VarDemo where
+  type KVPath VarDemo = "/testing/{}/var"
+  type KeyType VarDemo = VarDemoKey
 
 
-{- | Specify how to derive the path to store @'VarTest's@ in the key-value store
+{- | Specify how to derive the path to store @'VarDemo's@ in the key-value store
 
 This instance uses 'expand' to replace the @{}@ in the 'KVPath' with the
 variable portion of the key.
 -}
-instance VaryingPathOf VarTest where
-  type PathVar VarTest = VarTestID
+instance VaryingPathOf VarDemo where
+  type PathVar VarDemo = VarDemoID
   modifyPath _ = expand
 
 
@@ -86,20 +86,20 @@ instance VaryingPathOf VarTest where
 
 it's just a simple type (tuple) wrapped in newtype to avoid orphan instances.
 -}
-newtype FixedTest = FixedTest (Int, Text)
+newtype FixedDemo = FixedDemo (Int, Text)
   deriving stock (Eq, Show)
   deriving (FromJSON, ToJSON) via (Int, Text)
   deriving (DecodeKV, EncodeKV) via AesonOf (Int, Text)
 
 
--- | Specify how @'FixedTest's@ are stored in the key-value store
-instance PathOf FixedTest where
-  type KVPath FixedTest = "/testing/fixed"
-  type KeyType FixedTest = FixedTestKey
+-- | Specify how @'FixedDemo's@ are stored in the key-value store
+instance PathOf FixedDemo where
+  type KVPath FixedDemo = "/testing/fixed"
+  type KeyType FixedDemo = FixedDemoKey
 
 
--- | The keys for each 'FixedTest' are @Int@s.
-newtype FixedTestKey = FixedTestKey Int
+-- | The keys for each 'FixedDemo' are @Int@s.
+newtype FixedDemoKey = FixedDemoKey Int
   deriving stock (Eq, Show)
   deriving (ToHttpApiData, FromHttpApiData, Num, Ord) via Int
   deriving (DecodeKV, EncodeKV) via HttpApiDataOf Int

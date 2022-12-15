@@ -35,30 +35,30 @@ checkFixedPathed = do
     it "should load correctly" $ \h -> do
       loadKVs h Fixed `endsRight` fixedKVs
 
-    checkLength @FixedTest Fixed 2
+    checkLength @FixedDemo Fixed 2
 
     it "should update an indexed value correctly" $ \h -> do
-      let key = AsKey fixedK1
-          want = FixedTest (1, "changed")
-      endsRight_ $ saveTo h key want
-      loadFrom h key `endsRight` want
-      mayLoadFrom h key `endsRight` Just want
+      let k = key fixedK1
+          want = FixedDemo (1, "changed")
+      endsRight_ $ saveTo h k want
+      loadFrom h k `endsRight` want
+      mayLoadFrom h k `endsRight` Just want
 
-    checkLength @FixedTest Fixed 2
+    checkLength @FixedDemo Fixed 2
 
     it "should add an indexed value correctly" $ \h -> do
-      let added = AsKey fixedK3
-          want = FixedTest (3, "added")
+      let added = key fixedK3
+          want = FixedDemo (3, "added")
       mayLoadFrom h added `endsRight` Nothing
       endsRight_ $ saveTo h added want
       mayLoadFrom h added `endsRight` Just want
 
-    checkLength @FixedTest Fixed 3
+    checkLength @FixedDemo Fixed 3
 
     it "should update the key-values correctly" $ \h -> do
       endsRight_ $ updateKVs h Fixed moreFixedKVs
-      mayLoadFrom h (AsKey fixedK1) `endsRight` Just fixedV3
-      mayLoadFrom h (AsKey fixedK4) `endsRight` Just fixedV4
+      mayLoadFrom h (key fixedK1) `endsRight` Just fixedV3
+      mayLoadFrom h (key fixedK4) `endsRight` Just fixedV4
 
     it "should fetch a subset of the key-values as a dict correctly" $ \h -> do
       let selection = fixedK1 :| [fixedK4]
@@ -76,15 +76,15 @@ checkVarPathed = do
     checkLength path2 2
 
     it "should update an indexed value correctly" $ \h -> do
-      let key = Extended id1 varK1
-          want = VarTest $ Right False
-      endsRight_ $ saveTo h key want
-      loadFrom h key `endsRight` want
-      mayLoadFrom h key `endsRight` Just want
+      let k = id1 // varK1
+          want = VarDemo $ Right False
+      endsRight_ $ saveTo h k want
+      loadFrom h k `endsRight` want
+      mayLoadFrom h k `endsRight` Just want
 
     it "should add an indexed value correctly" $ \h -> do
-      let added = Extended id2 varK3
-          want = VarTest $ Left "added"
+      let added = id2 // varK3
+          want = VarDemo $ Left "added"
       mayLoadFrom h added `endsRight` Nothing
       endsRight_ $ saveTo h added want
       mayLoadFrom h added `endsRight` Just want
@@ -94,8 +94,8 @@ checkVarPathed = do
 
     it "should update the key-values correctly" $ \h -> do
       endsRight_ $ updateKVs h path1 moreVarKVs
-      mayLoadFrom h (Extended id1 varK1) `endsRight` Just varV3
-      mayLoadFrom h (Extended id1 varK4) `endsRight` Just varV4
+      mayLoadFrom h (id1 // varK1) `endsRight` Just varV3
+      mayLoadFrom h (id1 // varK4) `endsRight` Just varV4
 
     it "should fetch a subset of the key-values correctly" $ \h -> do
       let selection = varK1 :| [varK4]
@@ -114,21 +114,21 @@ closeFixture :: Handle IO -> IO ()
 closeFixture = close
 
 
-fixedK1, fixedK2, fixedK3, fixedK4 :: FixedTestKey
+fixedK1, fixedK2, fixedK3, fixedK4 :: FixedDemoKey
 fixedK1 = 25
 fixedK2 = 49
 fixedK3 = 81
 fixedK4 = 121
 
 
-fixedV1, fixedV2, fixedV3, fixedV4 :: FixedTest
-fixedV1 = FixedTest (1, "one")
-fixedV2 = FixedTest (2, "two")
-fixedV3 = FixedTest (1, "un")
-fixedV4 = FixedTest (4, "quatre")
+fixedV1, fixedV2, fixedV3, fixedV4 :: FixedDemo
+fixedV1 = FixedDemo (1, "one")
+fixedV2 = FixedDemo (2, "two")
+fixedV3 = FixedDemo (1, "un")
+fixedV4 = FixedDemo (4, "quatre")
 
 
-fixedKVs, moreFixedKVs :: TypedKVs FixedTest
+fixedKVs, moreFixedKVs :: TypedKVs FixedDemo
 fixedKVs =
   Map.fromList
     [ (fixedK1, fixedV1)
@@ -141,31 +141,31 @@ moreFixedKVs =
     ]
 
 
-varK1, varK2, varK3, varK4 :: VarTestKey
+varK1, varK2, varK3, varK4 :: VarDemoKey
 varK1 = 36
 varK2 = 64
 varK3 = 100
 varK4 = 144
 
 
-path1, path2 :: TypedPath VarTest
+path1, path2 :: TypedPath VarDemo
 path1 = Variable id1
 path2 = Variable id2
 
 
-id1, id2 :: VarTestID
+id1, id2 :: VarDemoID
 id1 = "id1"
 id2 = "id2"
 
 
-varV1, varV2, varV3, varV4 :: VarTest
-varV1 = VarTest $ Left "one"
-varV2 = VarTest $ Right False
-varV3 = VarTest $ Left "three"
-varV4 = VarTest $ Left "four"
+varV1, varV2, varV3, varV4 :: VarDemo
+varV1 = VarDemo $ Left "one"
+varV2 = VarDemo $ Right False
+varV3 = VarDemo $ Left "three"
+varV4 = VarDemo $ Left "four"
 
 
-varKVs, moreVarKVs :: TypedKVs VarTest
+varKVs, moreVarKVs :: TypedKVs VarDemo
 varKVs =
   Map.fromList
     [ (varK1, varV1)
