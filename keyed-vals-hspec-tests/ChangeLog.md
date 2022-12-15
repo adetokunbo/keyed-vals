@@ -2,7 +2,7 @@
 
 `keyed-vals-hspec-tests` uses [PVP Versioning][1].
 
-## 0.2.0.0 -- 2022-12-08
+## 0.2.0.0 -- 2022-12-15
 
 * add tests that verify [KeyedVal.Handle.Typed][]
 * reduce the number of functions exposed for external use

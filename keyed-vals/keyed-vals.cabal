@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               keyed-vals
-version:            0.1.1.0
+version:            0.2.0.0
 license:            BSD-3-Clause
 license-file:       LICENSE
 maintainer:         adetokunbo@emio.la
@@ -13,15 +13,13 @@ description:
   Provides an abstract [Handle](https://jaspervdj.be/posts/2018-03-08-handle-pattern.html) for
   accessing stored key-value collections, and useful combinators that use Handle.
 
-  One implementation of Handle accesses collections in in
-  [Redis](https://hackage.haskell.org/package/keyed-vals-redis); other backends
-  are possible.
+  One implementation of Handle accesses collections in [Redis](https://hackage.haskell.org/package/keyed-vals-redis) other backends are possible.
 
-  This library provides a typed interface to the storage backend that allows the
-  path in storage backend to be declaratively linked to the type of data stored;
-  via a simple typeclass definition.
+  keyed-vals also provides a typed interface to the storage backend that allows the
+  path in the storage backend to be declaratively linked to the types of data
+  stored via a straightforward typeclass declaration.
 
-  Read this [short example](https://github.com/adetokunbo/keyed-vals#readme)
+  Read this [short example](https://github.com/adetokunbo/keyed-vals/tree/main/keyed-vals#example)
   for an introduction its usage.
 
 category:           Data, Redis
@@ -37,7 +35,6 @@ source-repository head
 library
   exposed-modules:
     KeyedVals.Handle
-    KeyedVals.Handle.Aeson
     KeyedVals.Handle.Codec
     KeyedVals.Handle.Codec.Aeson
     KeyedVals.Handle.Codec.HttpApiData
