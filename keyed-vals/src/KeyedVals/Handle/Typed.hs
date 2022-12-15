@@ -8,6 +8,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# OPTIONS_HADDOCK prune not-home #-}
 
 {- |
@@ -46,9 +47,11 @@ module KeyedVals.Handle.Typed (
 
   -- * unify @PathOf@/@VaryingPathOf@
   TypedPath (..),
-  TypedKey (..),
+  TypedKey,
   pathKey,
   pathOf,
+  key,
+  (//),
 
   -- * module re-exports
   module KeyedVals.Handle,
@@ -154,10 +157,41 @@ import Numeric.Natural
 
  > >>> handle <- Mem.new
  > >>> tim = Person { name = "Tim", age = 48 }
- > >>> saveTo handle (AsKey 1) tim
+ > >>> saveTo handle (key 1) tim
  > Right ()
- > >>> loadFrom handle (AsKey 1)
+ > >>> loadFrom handle (key 1)
  > Right (Person { name = "Tim", age = 48 })
+
+ Suppose that in addition to the main collection of @Person@s, it's necessary to
+ store a distinct list of the friends of each @Person@. I.e, store a small keyed
+ collection of @Person@s per person.
+
+ One way to achieve is to store each such collection at a similar path, e.g
+ suppose the friends for the person with @anID@ are stored at
+ @/app/person/<anId>/friends@.
+
+ This can be implemented using the existing types along with another newtype
+ that has @PathOf@ and @VaryingPathOf@ instances as follows
+
+ > newtype Friend = Friend Person
+ >   deriving stock (Eq, Show)
+ >   deriving (FromJSON, ToJSON, EncodeKV, DecodeKV) via Person
+ >
+ > instance PathOf Friend where
+ >   type KVPath Friend = "/app/person/{}/friends"
+ >   type KeyType Friend = FriendID -- as defined earlier
+ >
+ > instance VaryingPathOf Friend where
+ >   type PathVar Friend = PersonID
+ >   modifyPath _ = expand -- implements modifyPath by expanding the braces to PathVar
+
+ This allows @Friends@ to be saved or fetched as follows:
+
+ > >>> dave = Person { name = "Dave", age = 61 }
+ > >>> saveTo handle (key 2) dave -- save in main person list
+ > Right ()
+ > >>> saveTo handle ( 1 // 2) (Friend dave) -- save as friend of tim (person 1)
+ > Right ()
 -}
 
 
@@ -169,7 +203,7 @@ pathKey (Variable part) = modifyPath @v Proxy part $ rawPath @v Proxy
 
 -- | Derives the 'TypedPath' corresponding to a 'TypedKey'.
 pathOf :: TypedKey v -> TypedPath v
-pathOf (AsKey _) = Fixed
+pathOf (ToKey _) = Fixed
 pathOf (Extended part _) = Variable part
 
 
@@ -250,12 +284,25 @@ data TypedPath v where
 
 -- | Similar to 'TypedPath', but includes an actual key along with the phantom type.
 data TypedKey v where
-  AsKey :: (PathOf v) => KeyType v -> TypedKey v
+  ToKey :: (PathOf v) => KeyType v -> TypedKey v
   Extended :: (VaryingPathOf v) => PathVar v -> KeyType v -> TypedKey v
 
 
+-- | Constructs a simple 'TypedKey'.
+key :: PathOf v => KeyType v -> TypedKey v
+key = ToKey
+
+
+-- | Constructs an extended 'TypedKey'.
+infixr 5 //
+
+
+(//) :: VaryingPathOf v => PathVar v -> KeyType v -> TypedKey v
+a // b = Extended a b
+
+
 instance EncodeKV (TypedKey v) where
-  encodeKV (AsKey x) = encodeKV x
+  encodeKV (ToKey x) = encodeKV x
   encodeKV (Extended _ x) = encodeKV x
 
 
@@ -361,8 +408,7 @@ modKVs ::
   TypedPath a ->
   m (Either HandleErr ())
 modKVs modDict h aKey = do
-  let key = pathKey aKey
-  H.loadKVs h key >>= (pure . orDecodeKVs) >>= \case
+  H.loadKVs h (pathKey aKey) >>= (pure . orDecodeKVs) >>= \case
     Left err -> pure $ Left err
     Right d -> saveKVs h aKey $ modDict d
 
@@ -383,9 +429,8 @@ loadSlice ::
   NonEmpty (KeyType a) ->
   m (Either HandleErr (TypedKVs a))
 loadSlice h aKey keys = do
-  let key = pathKey aKey
-      selection = AllOf $ fmap encodeKV keys
-  H.loadSlice h key selection >>= pure . orDecodeKVs
+  let selection = AllOf $ fmap encodeKV keys
+  H.loadSlice h (pathKey aKey) selection >>= pure . orDecodeKVs
 
 
 orDecodeKVs ::
