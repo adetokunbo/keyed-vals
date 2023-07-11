@@ -2,6 +2,13 @@
 
 `keyed-vals-hspec-tests` uses [PVP Versioning][1].
 
+## 0.2.2.0 -- 2023-07-11
+
+Changed
+
+* Relax constraints on the http-api-data dependency
+* Relax constraints on the bytestring dependency
+
 ## 0.2.1.0 -- 2023-07-11
 
 Changed
