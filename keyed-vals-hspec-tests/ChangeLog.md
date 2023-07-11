@@ -2,6 +2,12 @@
 
 `keyed-vals-hspec-tests` uses [PVP Versioning][1].
 
+## 0.2.1.0 -- 2023-07-11
+
+Changed
+
+* Relax constraints on the aeson dependency
+
 ## 0.2.0.0 -- 2022-12-15
 
 * add tests that verify [KeyedVal.Handle.Typed][]
