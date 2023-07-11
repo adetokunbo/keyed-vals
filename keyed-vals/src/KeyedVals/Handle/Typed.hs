@@ -83,10 +83,10 @@ import Numeric.Natural
  It starts with a preamble that shows the directives and imports used in the
  examples below
 
- > {\-# LANGUAGE DeriveGeneric #-\}
- > {\-# LANGUAGE DerivingVia #-\}
- > {\-# LANGUAGE OverloadedStrings #-\}
- > {\-# LANGUAGE StandaloneDeriving #-\}
+ > {-# LANGUAGE DeriveGeneric #-}
+ > {-# LANGUAGE DerivingVia #-}
+ > {-# LANGUAGE OverloadedStrings #-}
+ > {-# LANGUAGE StandaloneDeriving #-}
  >
  > import Data.Aeson (FromJSON, ToJSON)
  > import Data.Text (Text)
