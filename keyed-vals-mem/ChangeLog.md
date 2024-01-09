@@ -2,6 +2,12 @@
 
 `keyed-vals-mem` uses [PVP Versioning][1].
 
+## 0.2.3.0 -- 2024-01-09
+
+Changed
+
+* Relax constraints on the containers dependency
+
 ## 0.2.2.0 -- 2023-07-11
 
 Changed
