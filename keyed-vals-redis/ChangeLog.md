@@ -3,6 +3,12 @@
 `keyed-vals-redis` uses [PVP Versioning][1].
 
 
+## 0.2.3.1 -- 2024-02-28
+
+Changed
+
+* Extend bounds on the bytestring dependency
+
 ## 0.2.3.0 -- 2024-01-09
 
 Changed
