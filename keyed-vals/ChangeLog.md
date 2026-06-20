@@ -2,6 +2,12 @@
 
 `keyed-vals` uses [PVP Versioning][1].
 
+## 0.2.3.5 -- 2026-06-20
+
+Changed
+
+* Relax upper bounds on the aeson dependency
+
 ## 0.2.3.4 -- 2026-01-14
 
 Changed
