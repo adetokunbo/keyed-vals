@@ -2,6 +2,12 @@
 
 `keyed-vals-redis` uses [PVP Versioning][1].
 
+## 0.2.3.6 -- 2026-06-26
+
+Changed
+
+* Fix broken compile due to dependency change in v0.2.3.5
+
 ## 0.2.3.5 -- 2026-06-20
 
 Changed
