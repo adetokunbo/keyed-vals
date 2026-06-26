@@ -79,7 +79,7 @@ invalidLocator x = throwIO $ userError $ "REDIS connection url: " ++ x ++ " is i
 
 
 -- | Create a 'Handle'.
-fromConnectInfo :: MonadUnliftIO m => ConnectInfo -> m (Handle m)
+fromConnectInfo :: (MonadUnliftIO m) => ConnectInfo -> m (Handle m)
 fromConnectInfo connectInfo = do
   conn <- liftIO $ checkedConnect connectInfo
   pure $
@@ -99,12 +99,12 @@ fromConnectInfo connectInfo = do
       }
 
 
-hClose' :: MonadUnliftIO m => Connection -> m ()
+hClose' :: (MonadUnliftIO m) => Connection -> m ()
 hClose' = liftIO . disconnect
 
 
 hLoadVal' ::
-  MonadUnliftIO m =>
+  (MonadUnliftIO m) =>
   Connection ->
   Key ->
   m (Either HandleErr (Maybe Val))
@@ -112,7 +112,7 @@ hLoadVal' conn key = doFetch conn $ get key
 
 
 hSaveVal' ::
-  MonadUnliftIO m =>
+  (MonadUnliftIO m) =>
   Connection ->
   Key ->
   Val ->
@@ -121,7 +121,7 @@ hSaveVal' conn key value = doStore conn $ set key value
 
 
 hLoadFrom' ::
-  MonadUnliftIO m =>
+  (MonadUnliftIO m) =>
   Connection ->
   Key ->
   Key ->
@@ -130,7 +130,7 @@ hLoadFrom' conn key dictKey = doFetch conn $ hget key dictKey
 
 
 hLoadKVs' ::
-  MonadUnliftIO m =>
+  (MonadUnliftIO m) =>
   Connection ->
   Key ->
   m (Either HandleErr ValsByKey)
@@ -138,24 +138,23 @@ hLoadKVs' conn key = doFetch conn $ hgetall key <&> fmap Map.fromList
 
 
 hLoadSlice' ::
-  MonadUnliftIO m =>
+  (MonadUnliftIO m) =>
   Connection ->
   Key ->
   Selection ->
   m (Either HandleErr ValsByKey)
 hLoadSlice' conn key m@(Match _) = selectKeysThen hLoadSlice' conn key m
-hLoadSlice' conn key (AllOf dictKeys') = do
-  let dictKeys = NonEmpty.toList dictKeys'
+hLoadSlice' conn key (AllOf dictKeys) = do
   doFetch conn (hmget key dictKeys) >>= \case
     Left err -> pure $ Left err
     Right fetched -> do
-      let pairedMaybes = zip dictKeys fetched
+      let pairedMaybes = zip (NonEmpty.toList dictKeys) fetched
           mbOf (x, mbY) = mbY >>= \y -> Just (x, y)
       pure $ Right $ Map.fromList $ mapMaybe mbOf pairedMaybes
 
 
 hCountKVs' ::
-  MonadUnliftIO m =>
+  (MonadUnliftIO m) =>
   Connection ->
   Key ->
   m (Either HandleErr Natural)
@@ -163,17 +162,17 @@ hCountKVs' conn key = doFetch conn $ hlen key <&> fmap fromInteger
 
 
 hSaveTo' ::
-  MonadUnliftIO m =>
+  (MonadUnliftIO m) =>
   Connection ->
   Key ->
   Key ->
   Val ->
   m (Either HandleErr ())
-hSaveTo' conn key dictKey value = doStore' conn $ hset key dictKey value
+hSaveTo' conn key dictKey value = doStore' conn $ hset key (NonEmpty.singleton (dictKey, value))
 
 
 hSaveKVs' ::
-  MonadUnliftIO m =>
+  (MonadUnliftIO m) =>
   Connection ->
   Key ->
   ValsByKey ->
@@ -184,20 +183,23 @@ hSaveKVs' conn key dict = do
 
 
 hUpdateKVs' ::
-  MonadUnliftIO m =>
+  (MonadUnliftIO m) =>
   Connection ->
   Key ->
   ValsByKey ->
   m (Either HandleErr ())
-hUpdateKVs' conn key dict = doStore' conn $ hmset key $ Map.toList dict
+hUpdateKVs' conn key dict =
+  case NonEmpty.nonEmpty $ Map.toList dict of
+    Just x -> doStore' conn $ hmset key x
+    Nothing -> pure $ Right ()
 
 
 hDeleteSelected' ::
-  MonadUnliftIO m =>
+  (MonadUnliftIO m) =>
   Connection ->
   Selection ->
   m (Either HandleErr ())
-hDeleteSelected' conn (AllOf ks) = doStore' conn $ del $ NonEmpty.toList ks
+hDeleteSelected' conn (AllOf ks) = doStore' conn $ del ks
 hDeleteSelected' conn (Match g) = do
   doFetch conn (keys $ globPattern g) >>= \case
     Left e -> pure $ Left e
@@ -206,12 +208,12 @@ hDeleteSelected' conn (Match g) = do
 
 
 hDeleteSelectedKVs' ::
-  MonadUnliftIO m =>
+  (MonadUnliftIO m) =>
   Connection ->
   Key ->
   Selection ->
   m (Either HandleErr ())
-hDeleteSelectedKVs' conn key (AllOf dictKeys) = doStore' conn $ hdel key $ NonEmpty.toList dictKeys
+hDeleteSelectedKVs' conn key (AllOf dictKeys) = doStore' conn $ hdel key dictKeys
 hDeleteSelectedKVs' conn key m@(Match _) = selectKeysThen hDeleteSelectedKVs' conn key m
 
 
@@ -223,11 +225,11 @@ selectKeysThen ::
   Selection ->
   m (Either HandleErr b)
 selectKeysThen f conn key selection = do
-  (doFetch conn $ hkeys key) >>= \case
+  doFetch conn (hkeys key) >>= \case
     Left e -> pure $ Left e
     Right [] -> pure $ Right mempty
     Right xs -> do
-      case (filter (\k -> k `isIn` selection) xs) of
+      case filter (`isIn` selection) xs of
         [] -> pure $ Right mempty
         (k : ks) -> f conn key $ AllOf (k :| ks)
 
@@ -243,14 +245,14 @@ toHandleErr r = Unanticipated $ Text.pack $ show r
 
 
 doStore ::
-  MonadIO m =>
+  (MonadIO m) =>
   Connection ->
   Redis (Either Reply Status) ->
   m (Either HandleErr ())
 doStore conn action = liftIO $ leftErr $ runRedis conn action
 
 
-leftErr :: Monad m => m (Either Reply Status) -> m (Either HandleErr ())
+leftErr :: (Monad m) => m (Either Reply Status) -> m (Either HandleErr ())
 leftErr x =
   x >>= \case
     (Left l) -> pure $ Left $ toHandleErr l
@@ -260,14 +262,14 @@ leftErr x =
 
 
 doStore' ::
-  MonadIO m =>
+  (MonadIO m) =>
   Connection ->
   Redis (Either Reply a) ->
   m (Either HandleErr ())
 doStore' conn action = liftIO $ leftErr'' $ runRedis conn action
 
 
-leftErr'' :: Monad m => m (Either Reply a) -> m (Either HandleErr ())
+leftErr'' :: (Monad m) => m (Either Reply a) -> m (Either HandleErr ())
 leftErr'' x =
   x >>= \case
     (Left l) -> pure $ Left $ toHandleErr l
@@ -275,12 +277,12 @@ leftErr'' x =
 
 
 doFetch ::
-  MonadUnliftIO m =>
+  (MonadUnliftIO m) =>
   Connection ->
   Redis (Either Reply a) ->
   m (Either HandleErr a)
 doFetch conn = liftIO . leftErr' . runRedis conn
 
 
-leftErr' :: Monad m => m (Either Reply a) -> m (Either HandleErr a)
+leftErr' :: (Monad m) => m (Either Reply a) -> m (Either HandleErr a)
 leftErr' = (<&> either (Left . toHandleErr) Right)

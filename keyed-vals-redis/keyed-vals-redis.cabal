@@ -1,11 +1,11 @@
 cabal-version:      3.0
 name:               keyed-vals-redis
-version:            0.2.3.5
+version:            0.2.3.6
 license:            BSD-3-Clause
 license-file:       LICENSE
 maintainer:         adetokunbo@emio.la
 author:             Tim Emiola
-tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.4 || ==9.4.1
+tested-with:        GHC ==9.6.6 || ==9.0.2 || ==9.10.1
 homepage:           https://github.com/adetokunbo/keyed-vals#readme
 bug-reports:        https://github.com/adetokunbo/keyed-vals/issues
 synopsis:
