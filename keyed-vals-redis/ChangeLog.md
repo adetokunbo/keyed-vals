@@ -2,6 +2,12 @@
 
 `keyed-vals-redis` uses [PVP Versioning][1].
 
+## 0.2.4.0 -- 2026-06-26
+
+Changed
+
+* Match dependency bounds of hedis on base
+
 ## 0.2.3.6 -- 2026-06-26
 
 Changed
