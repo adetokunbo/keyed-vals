@@ -3,3 +3,5 @@ packages:
   ./keyed-vals-hspec-tests
   ./keyed-vals-mem
   ./keyed-vals-redis
+
+test-show-details: streaming

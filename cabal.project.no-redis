@@ -1,0 +1,9 @@
+-- cabal.project.no-redis
+-- Excludes tmp-proc-redis because it requires hedis >= 0.16,
+-- which needs GHC 9.6+ (base >= 4.18).
+packages:
+  ./keyed-vals
+  ./keyed-vals-hspec-tests
+  ./keyed-vals-mem
+
+test-show-details: streaming
