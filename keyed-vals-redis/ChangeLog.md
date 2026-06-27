@@ -2,6 +2,12 @@
 
 `keyed-vals-redis` uses [PVP Versioning][1].
 
+## 0.2.5.0 -- 2026-06-27
+
+Changed
+
+* Fix broken compile of 2.4.0, restrict lower bound on hedis
+
 ## 0.2.4.0 -- 2026-06-26
 
 Changed
