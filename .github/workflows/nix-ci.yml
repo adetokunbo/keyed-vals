@@ -26,6 +26,17 @@ jobs:
     - uses: cachix/cachix-action@v10
       with:
         name: adetokunbo-open
+    - uses: nix-community/cache-nix-action@v6
+      with:
+        primary-key: nix-${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('**/*.nix') }}
+        restore-keys: |
+          nix-${{ runner.os }}-${{ matrix.ghc }}-
+          nix-${{ runner.os }}-
+        gc-max-store-size-linux: 1073741824
+        purge: true
+        purge-prefixes: nix-${{ runner.os }}-
+        purge-created: 0
+        purge-primary-key: never
     - name: Display the completed user Nix conf
       run: |
         cat $HOME/.config/nix/nix.conf
