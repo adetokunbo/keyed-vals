@@ -30,10 +30,10 @@ jobs:
       with:
         name: adetokunbo-open
         authToken: "${{ secrets.CACHIX_TOKEN }}"
-    - uses: nix-community/cache-nix-action@v6
+    - uses: nix-community/cache-nix-action@v7
       with:
         primary-key: nix-${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('**/*.nix') }}
-        restore-keys: |
+        restore-prefixes-first-match: |
           nix-${{ runner.os }}-${{ matrix.ghc }}-
           nix-${{ runner.os }}-
         gc-max-store-size-linux: 1073741824
